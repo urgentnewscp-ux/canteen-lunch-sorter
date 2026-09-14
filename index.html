@@ -1164,32 +1164,83 @@
     printReport('Class flavour summary', blocks);
   };
 
+  function orderingRows(regular, veg, apple, ab, trop){
+    return [
+      ["Regular hot dogs / sausages", regular],
+      ["Vegetarian hot dogs / patties", veg],
+      ["Apple juice boxes", apple],
+      ["Apple & Blackcurrant juice boxes", ab],
+      ["Tropical juice boxes", trop]
+    ];
+  }
+
+  function summaryRows(regular, veg, withJuice, plainOnly, apple, ab, trop){
+    return [
+      ["Regular hot dogs", regular],
+      ["Vegetarian hot dogs", veg],
+      ["Hot dog + juice", withJuice],
+      ["Hot dog only", plainOnly],
+      ["Apple juice", apple],
+      ["Apple & Blackcurrant juice", ab],
+      ["Tropical juice", trop]
+    ];
+  }
+
+  function daysWithOrders(d){
+    return dayDays.filter(function(day){ return d.byDay[day] && d.byDay[day].orders > 0; });
+  }
+
   actions.orderingSheet = function(){
     var d = currentData;
-    printReport('Ordering sheet', [{scope:'Shopping totals', accent:'navy',
-      stats:[['Orders', d.totalOrders], ['Hot dogs', d.totalHotdogs], ['Juice boxes', d.totalJuiceHotdogs]],
-      tableHead:['Item','Quantity'], colAlign:['left','right'], tableRows:[
-        ["Regular hot dogs / sausages", d.totalHotdogsRegular],
-        ["Vegetarian hot dogs / patties", d.totalHotdogsVeg],
-        ["Apple juice boxes", d.flavourTotals.apple||0],
-        ["Apple & Blackcurrant juice boxes", d.flavourTotals.ab||0],
-        ["Tropical juice boxes", d.flavourTotals.trop||0]
-      ], totalRow:['Hot dogs, total', d.totalHotdogs]}]);
+    var days = daysWithOrders(d);
+    var blocks = [];
+    if(days.length > 1){
+      days.forEach(function(day){
+        var info = d.byDay[day];
+        blocks.push({scope: day + ' \u2014 shopping totals', accent:'navy', brk:true,
+          stats:[['Orders', info.orders], ['Hot dogs', info.hotdogs], ['Juice boxes', juiceTotal(info)]],
+          tableHead:['Item','Quantity'], colAlign:['left','right'],
+          tableRows: orderingRows(info.hotdogsRegular, info.hotdogsVeg, info.combos.apple||0, info.combos.ab||0, info.combos.trop||0),
+          totalRow:['Hot dogs, total', info.hotdogs]});
+      });
+      blocks.push({scope:'All days combined \u2014 shopping totals', accent:'navy',
+        stats:[['Orders', d.totalOrders], ['Hot dogs', d.totalHotdogs], ['Juice boxes', d.totalJuiceHotdogs]],
+        tableHead:['Item','Quantity'], colAlign:['left','right'],
+        tableRows: orderingRows(d.totalHotdogsRegular, d.totalHotdogsVeg, d.flavourTotals.apple||0, d.flavourTotals.ab||0, d.flavourTotals.trop||0),
+        totalRow:['Hot dogs, total', d.totalHotdogs]});
+    } else {
+      blocks.push({scope:'Shopping totals', accent:'navy',
+        stats:[['Orders', d.totalOrders], ['Hot dogs', d.totalHotdogs], ['Juice boxes', d.totalJuiceHotdogs]],
+        tableHead:['Item','Quantity'], colAlign:['left','right'],
+        tableRows: orderingRows(d.totalHotdogsRegular, d.totalHotdogsVeg, d.flavourTotals.apple||0, d.flavourTotals.ab||0, d.flavourTotals.trop||0),
+        totalRow:['Hot dogs, total', d.totalHotdogs]});
+    }
+    printReport('Ordering sheet', blocks);
   };
 
   actions.summaryPdf = function(){
     var d = currentData;
-    printReport('Summary', [{scope:'Session summary', accent:'navy',
-      stats:[['Orders', d.totalOrders], ['Hot dogs', d.totalHotdogs], ['Juice boxes', d.totalJuiceHotdogs]],
-      tableHead:['Item','Count'], colAlign:['left','right'], tableRows:[
-        ["Regular hot dogs", d.totalHotdogsRegular],
-        ["Vegetarian hot dogs", d.totalHotdogsVeg],
-        ["Hot dog + juice", d.totalJuiceHotdogs],
-        ["Hot dog only", d.totalPlainHotdogs],
-        ["Apple juice", d.flavourTotals.apple||0],
-        ["Apple & Blackcurrant juice", d.flavourTotals.ab||0],
-        ["Tropical juice", d.flavourTotals.trop||0]
-      ]}]);
+    var days = daysWithOrders(d);
+    var blocks = [];
+    if(days.length > 1){
+      days.forEach(function(day){
+        var info = d.byDay[day];
+        blocks.push({scope: day + ' \u2014 session summary', accent:'navy', brk:true,
+          stats:[['Orders', info.orders], ['Hot dogs', info.hotdogs], ['Juice boxes', juiceTotal(info)]],
+          tableHead:['Item','Count'], colAlign:['left','right'],
+          tableRows: summaryRows(info.hotdogsRegular, info.hotdogsVeg, juiceTotal(info), info.plain, info.combos.apple||0, info.combos.ab||0, info.combos.trop||0)});
+      });
+      blocks.push({scope:'All days combined \u2014 session summary', accent:'navy',
+        stats:[['Orders', d.totalOrders], ['Hot dogs', d.totalHotdogs], ['Juice boxes', d.totalJuiceHotdogs]],
+        tableHead:['Item','Count'], colAlign:['left','right'],
+        tableRows: summaryRows(d.totalHotdogsRegular, d.totalHotdogsVeg, d.totalJuiceHotdogs, d.totalPlainHotdogs, d.flavourTotals.apple||0, d.flavourTotals.ab||0, d.flavourTotals.trop||0)});
+    } else {
+      blocks.push({scope:'Session summary', accent:'navy',
+        stats:[['Orders', d.totalOrders], ['Hot dogs', d.totalHotdogs], ['Juice boxes', d.totalJuiceHotdogs]],
+        tableHead:['Item','Count'], colAlign:['left','right'],
+        tableRows: summaryRows(d.totalHotdogsRegular, d.totalHotdogsVeg, d.totalJuiceHotdogs, d.totalPlainHotdogs, d.flavourTotals.apple||0, d.flavourTotals.ab||0, d.flavourTotals.trop||0)});
+    }
+    printReport('Summary', blocks);
   };
 
   actions.hotdogPackingByClass = function(){
