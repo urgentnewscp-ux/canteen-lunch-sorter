@@ -641,15 +641,17 @@
 
     document.getElementById('topTiles').innerHTML =
       tileHtml('Orders', d.totalOrders, 'blue') +
-      tileHtml('Hot dogs', d.totalHotdogs, 'red') +
-      tileHtml('Vegetarian', d.totalHotdogsVeg, 'gold') +
+      tileHtml('Hot dogs (total)', d.totalHotdogs, 'red') +
+      tileHtml('&ndash; Regular', d.totalHotdogsRegular, '') +
+      tileHtml('&ndash; Vegetarian', d.totalHotdogsVeg, 'gold') +
       tileHtml('Juice', d.totalJuiceHotdogs, 'green') +
       tileHtml('Classes', classesWithOrders.length, '');
 
     document.getElementById('breakdownTiles').innerHTML =
       tileHtml('Orders', d.totalOrders, 'blue') +
-      tileHtml('Hot dogs', d.totalHotdogs, 'red') +
-      tileHtml('Vegetarian', d.totalHotdogsVeg, 'gold') +
+      tileHtml('Hot dogs (total)', d.totalHotdogs, 'red') +
+      tileHtml('&ndash; Regular', d.totalHotdogsRegular, '') +
+      tileHtml('&ndash; Vegetarian', d.totalHotdogsVeg, 'gold') +
       tileHtml('Juice boxes', d.totalJuiceHotdogs, 'green');
 
     // by-year grouped tables
