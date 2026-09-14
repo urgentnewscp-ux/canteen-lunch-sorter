@@ -1,6 +1,6 @@
 <title>Footy Day Lunch Sorter</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap');
 
   :root{
     --paper:#FFFFFF;
@@ -75,7 +75,7 @@
     padding-inline:20px;
     padding-block:24px 56px;
   }
-  h1,h2,h3{font-family:'Fraunces',Georgia,serif; text-wrap:balance; margin:0;}
+  h1,h2,h3{font-family:'Inter',ui-sans-serif,system-ui,sans-serif; text-wrap:balance; margin:0;}
   .mono{font-family:'IBM Plex Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums;}
   button, select, input{font-family:inherit;}
 
@@ -302,7 +302,7 @@
 
   /* ---------- packing sheets (big-print, for the people packing food) ---------- */
   .sheet-body{padding:30px 30px 34px; text-align:center;}
-  .sheet-classname{font-family:'Fraunces',serif; font-weight:700; font-size:38px; line-height:1.05; margin-bottom:4px;}
+  .sheet-classname{font-family:'Inter',sans-serif; font-weight:800; letter-spacing:-.01em; font-size:38px; line-height:1.05; margin-bottom:4px;}
   .sheet-classmeta{font-size:12.5px; color:var(--ink-soft); font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-bottom:24px;}
   .sheet-hero{
     display:inline-flex; flex-direction:column; align-items:center; padding:20px 56px;
@@ -310,7 +310,7 @@
   }
   .sheet-hero.accent-red{border-color:var(--red);}
   .sheet-hero.accent-green{border-color:var(--green);}
-  .sheet-hero .shv{font-family:'Fraunces',serif; font-weight:700; font-size:80px; line-height:1; font-variant-numeric:tabular-nums;}
+  .sheet-hero .shv{font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:80px; line-height:1; font-variant-numeric:tabular-nums;}
   .sheet-hero.accent-red .shv{color:var(--red);}
   .sheet-hero.accent-green .shv{color:var(--green);}
   .sheet-hero .shl{font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); margin-top:8px;}
@@ -323,7 +323,7 @@
     width:22px; height:22px; border:2px solid var(--line-strong); border-radius:6px; flex:none;
   }
   .sheet-dot{width:16px; height:16px; border-radius:50%; flex:none;}
-  .sheet-flavour-count{font-family:'Fraunces',serif; font-weight:700; font-size:34px; font-variant-numeric:tabular-nums;}
+  .sheet-flavour-count{font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:34px; font-variant-numeric:tabular-nums;}
   .sheet-empty{color:var(--ink-faint); font-size:14px; padding:18px 0; text-align:center;}
   @media print{
     .sheet-hero, table.rtable th, .sheet-check{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
@@ -383,7 +383,10 @@
         <div class="session-bar">
           <div>
             <span class="field-label">Session name</span>
-            <input class="field-input" id="sessionName" value="Footy Day 1" />
+            <div style="display:flex; gap:6px;">
+              <input class="field-input" id="sessionName" value="Footy Day 1" style="flex:1;" />
+              <button type="button" class="btn ghost" id="saveSessionBtn" style="flex:none; white-space:nowrap;" title="Save session name, lunch item and date on this device">Save</button>
+            </div>
           </div>
           <div>
             <span class="field-label">Lunch item</span>
@@ -1476,6 +1479,33 @@
     var iso = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
     dateInput.value = iso;
   }
+
+  // ---- session details: saved on this device only (no online/cloud storage) ----
+  var SESSION_STORE_KEY = "footySessionMeta";
+  (function loadSessionMeta(){
+    try{
+      var raw = localStorage.getItem(SESSION_STORE_KEY);
+      if(!raw) return;
+      var parsed = JSON.parse(raw);
+      if(!parsed) return;
+      if(parsed.name) document.getElementById('sessionName').value = parsed.name;
+      if(parsed.lunchItem) document.getElementById('lunchItem').value = parsed.lunchItem;
+      if(parsed.date) document.getElementById('sessionDate').value = parsed.date;
+    }catch(e){}
+  })();
+
+  document.getElementById('saveSessionBtn').addEventListener('click', function(){
+    try{
+      localStorage.setItem(SESSION_STORE_KEY, JSON.stringify({
+        name: document.getElementById('sessionName').value,
+        lunchItem: document.getElementById('lunchItem').value,
+        date: document.getElementById('sessionDate').value
+      }));
+      showToast('Saved on this device \u2014 it will load next time you open this page here');
+    }catch(e){
+      showToast("Couldn't save \u2014 this browser may be blocking site storage");
+    }
+  });
 
   render(DEFAULT_DATA, DEFAULT_LABEL);
 })();
