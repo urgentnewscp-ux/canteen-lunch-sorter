@@ -164,7 +164,8 @@
   table.data tbody tr:last-child td{border-bottom:none;}
   .table-scroll{overflow-x:auto;}
 
-  .flavour-tables{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:22px;}
+  .flavour-tables{display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-top:22px;}
+  @media (max-width:900px){ .flavour-tables{grid-template-columns:1fr 1fr;} }
   @media (max-width:640px){ .flavour-tables{grid-template-columns:1fr;} }
   .flavour-card h3{font-size:14.5px; font-weight:700; font-family:'Inter',sans-serif;}
   .flavour-card .sub{font-size:12px; color:var(--ink-faint); font-weight:600;}
@@ -422,6 +423,10 @@
           <table class="data"><tbody id="hotdogFlavourBody"></tbody></table>
         </div>
         <div class="card flavour-card">
+          <div class="head-row"><h3>Vegetarian</h3><span class="sub mono" id="vegSub"></span></div>
+          <table class="data"><tbody id="vegFlavourBody"></tbody></table>
+        </div>
+        <div class="card flavour-card">
           <div class="head-row"><h3>Juice flavours</h3><span class="sub mono" id="juiceSub"></span></div>
           <table class="data"><tbody id="juiceFlavourBody"></tbody></table>
         </div>
@@ -526,6 +531,7 @@
     var flavourTotals = {};
     var totalHotdogs = 0, totalJuiceHotdogs = 0, totalPlainHotdogs = 0, totalOrders = rows.length;
     var totalHotdogsRegular = 0, totalHotdogsVeg = 0;
+    var totalJuiceRegular = 0, totalJuiceVeg = 0, totalPlainRegular = 0, totalPlainVeg = 0;
     var unmatched = [];
 
     FULL_ORDER.forEach(function(c){ byClass[c] = blankInfo(); });
@@ -562,22 +568,24 @@
         byClass[cls].combos[fk] = (byClass[cls].combos[fk]||0) + n;
         byClass[cls].comboByType[tk][fk] = (byClass[cls].comboByType[tk][fk]||0) + n;
         flavourTotals[fk] = (flavourTotals[fk]||0) + n;
-        if(tk === "veg"){ byClass[cls].hotdogsVeg += n; totalHotdogsVeg += n; }
-        else { byClass[cls].hotdogsRegular += n; totalHotdogsRegular += n; }
+        if(tk === "veg"){ byClass[cls].hotdogsVeg += n; totalHotdogsVeg += n; totalJuiceVeg += n; }
+        else { byClass[cls].hotdogsRegular += n; totalHotdogsRegular += n; totalJuiceRegular += n; }
       });
       plainMatches.forEach(function(n){
         totalHotdogs += n; totalPlainHotdogs += n;
         byClass[cls].hotdogs += n;
         byClass[cls].plain += n;
         byClass[cls].plainByType[tk] += n;
-        if(tk === "veg"){ byClass[cls].hotdogsVeg += n; totalHotdogsVeg += n; }
-        else { byClass[cls].hotdogsRegular += n; totalHotdogsRegular += n; }
+        if(tk === "veg"){ byClass[cls].hotdogsVeg += n; totalHotdogsVeg += n; totalPlainVeg += n; }
+        else { byClass[cls].hotdogsRegular += n; totalHotdogsRegular += n; totalPlainRegular += n; }
       });
     });
 
     return {byClass:byClass, flavourTotals:flavourTotals, totalHotdogs:totalHotdogs,
             totalJuiceHotdogs:totalJuiceHotdogs, totalPlainHotdogs:totalPlainHotdogs,
             totalHotdogsRegular:totalHotdogsRegular, totalHotdogsVeg:totalHotdogsVeg,
+            totalJuiceRegular:totalJuiceRegular, totalJuiceVeg:totalJuiceVeg,
+            totalPlainRegular:totalPlainRegular, totalPlainVeg:totalPlainVeg,
             totalOrders:totalOrders, unmatched:unmatched};
   }
 
@@ -641,17 +649,15 @@
 
     document.getElementById('topTiles').innerHTML =
       tileHtml('Orders', d.totalOrders, 'blue') +
-      tileHtml('Hot dogs (total)', d.totalHotdogs, 'red') +
-      tileHtml('&ndash; Regular', d.totalHotdogsRegular, '') +
-      tileHtml('&ndash; Vegetarian', d.totalHotdogsVeg, 'gold') +
+      tileHtml('Hot dogs', d.totalHotdogsRegular, 'red') +
+      tileHtml('Vegetarian', d.totalHotdogsVeg, 'gold') +
       tileHtml('Juice', d.totalJuiceHotdogs, 'green') +
       tileHtml('Classes', classesWithOrders.length, '');
 
     document.getElementById('breakdownTiles').innerHTML =
       tileHtml('Orders', d.totalOrders, 'blue') +
-      tileHtml('Hot dogs (total)', d.totalHotdogs, 'red') +
-      tileHtml('&ndash; Regular', d.totalHotdogsRegular, '') +
-      tileHtml('&ndash; Vegetarian', d.totalHotdogsVeg, 'gold') +
+      tileHtml('Hot dogs', d.totalHotdogsRegular, 'red') +
+      tileHtml('Vegetarian', d.totalHotdogsVeg, 'gold') +
       tileHtml('Juice boxes', d.totalJuiceHotdogs, 'green');
 
     // by-year grouped tables
@@ -663,23 +669,26 @@
       // keep canonical order within group
       var ordered = (y === "Kindergarten" ? KINDER_ORDER : CLASS_ORDER).filter(function(c){ return members.indexOf(c) !== -1; });
       html += '<div class="year-group"><div class="year-head"><h3>' + y + '</h3><span class="sub">' +
-        yi.orders + ' orders &middot; ' + yi.hotdogs + ' hot dogs (' + yi.hotdogsRegular + ' regular, ' + yi.hotdogsVeg + ' veg) &middot; ' + juiceTotal(yi) + ' juice</span></div>' +
-        '<div class="table-scroll"><table class="data"><thead><tr><th>Class</th><th class="num">Orders</th><th class="num">Hot dogs</th><th class="num">Regular</th><th class="num">Vegetarian</th><th class="num">Juice</th></tr></thead><tbody>';
+        yi.orders + ' orders &middot; ' + yi.hotdogsRegular + ' hot dogs &middot; ' + yi.hotdogsVeg + ' vegetarian &middot; ' + juiceTotal(yi) + ' juice</span></div>' +
+        '<div class="table-scroll"><table class="data"><thead><tr><th>Class</th><th class="num">Orders</th><th class="num">Hot dogs</th><th class="num">Vegetarian</th><th class="num">Juice</th></tr></thead><tbody>';
       ordered.forEach(function(c){
         var ci = d.byClass[c];
-        html += '<tr><td>' + esc(c) + '</td><td class="num">' + ci.orders + '</td><td class="num">' + ci.hotdogs + '</td><td class="num">' + ci.hotdogsRegular + '</td><td class="num">' + ci.hotdogsVeg + '</td><td class="num">' + juiceTotal(ci) + '</td></tr>';
+        html += '<tr><td>' + esc(c) + '</td><td class="num">' + ci.orders + '</td><td class="num">' + ci.hotdogsRegular + '</td><td class="num">' + ci.hotdogsVeg + '</td><td class="num">' + juiceTotal(ci) + '</td></tr>';
       });
       html += '</tbody></table></div></div>';
     });
     document.getElementById('yearGroups').innerHTML = html;
 
-    // hot dog / juice flavour summary tables
-    document.getElementById('hotdogSub').textContent = d.totalHotdogs + ' total';
+    // hot dog / vegetarian / juice flavour summary tables
+    document.getElementById('hotdogSub').textContent = d.totalHotdogsRegular + ' total';
     document.getElementById('hotdogFlavourBody').innerHTML =
-      '<tr><td>Regular</td><td class="num">' + d.totalHotdogsRegular + '</td></tr>' +
-      '<tr><td>Vegetarian</td><td class="num">' + d.totalHotdogsVeg + '</td></tr>' +
-      '<tr><td>With juice</td><td class="num">' + d.totalJuiceHotdogs + '</td></tr>' +
-      '<tr><td>Hot dog only</td><td class="num">' + d.totalPlainHotdogs + '</td></tr>';
+      '<tr><td>With juice</td><td class="num">' + d.totalJuiceRegular + '</td></tr>' +
+      '<tr><td>Hot dog only</td><td class="num">' + d.totalPlainRegular + '</td></tr>';
+
+    document.getElementById('vegSub').textContent = d.totalHotdogsVeg + ' total';
+    document.getElementById('vegFlavourBody').innerHTML =
+      '<tr><td>With juice</td><td class="num">' + d.totalJuiceVeg + '</td></tr>' +
+      '<tr><td>Hot dog only</td><td class="num">' + d.totalPlainVeg + '</td></tr>';
 
     document.getElementById('juiceSub').textContent = d.totalJuiceHotdogs + ' boxes';
     var jHtml = "";
