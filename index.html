@@ -890,6 +890,12 @@
   function breakdownText(rows){
     return rows.length ? rows.map(function(r){ return r[1] + ' x ' + r[0]; }).join('\n') : '\u2014';
   }
+  function hotdogSimpleBreakdown(info){
+    var parts = [];
+    if(info.hotdogsRegular) parts.push(info.hotdogsRegular + ' hot dogs');
+    if(info.hotdogsVeg) parts.push(info.hotdogsVeg + ' vegetarian');
+    return parts.length ? parts.join(', ') : '\u2014';
+  }
 
   // ---- block builders ----
   function juiceBlock(scope, info, brk){
@@ -915,7 +921,7 @@
       tableRows: rows, totalRow:['TOTAL', info.hotdogs], brk:brk};
   }
   function flavourSummaryRow(label, info){
-    return [label, info.hotdogs, breakdownText(hotdogItemRows(info)), juiceTotal(info), breakdownText(juiceItemRows(info))];
+    return [label, info.hotdogs, hotdogSimpleBreakdown(info), juiceTotal(info), breakdownText(juiceItemRows(info))];
   }
   var SUMMARY_HEAD = ["Class","Hot dogs","Hot dog breakdown","Juice","Juice flavours"];
   var SUMMARY_HEAD_YEAR = ["Year level","Hot dogs","Hot dog breakdown","Juice","Juice flavours"];
