@@ -386,7 +386,7 @@
           </div>
           <div>
             <span class="field-label">Source file</span>
-            <input class="field-input" id="sourceLabel" value="2026 BFG End of Term 3 Lunch — Footy Day 1" readonly style="color:var(--ink-soft);" />
+            <input class="field-input" id="sourceLabel" value="2026 BFG End of Term 3 Lunch &mdash; Footy Day 1" readonly style="color:var(--ink-soft);" />
           </div>
         </div>
         <div class="status-row">
@@ -720,8 +720,8 @@
     if(dateStr) metaParts.push(dateStr);
     var html = '<div class="print-block' + (b.brk ? ' page-break' : '') + '">';
     html += '<div class="print-banner"><div class="print-eyebrow">Footy Day Canteen</div>' +
-      '<div class="print-banner-row"><div class="print-banner-title">' + esc(sessionTitle()) + ' — ' + esc(title) + '</div>' +
-      (metaParts.length ? '<div class="print-banner-meta">' + esc(metaParts.join(' · ')) + '</div>' : '') +
+      '<div class="print-banner-row"><div class="print-banner-title">' + esc(sessionTitle()) + ' \u2014 ' + esc(title) + '</div>' +
+      (metaParts.length ? '<div class="print-banner-meta">' + esc(metaParts.join(' \u00b7 ')) + '</div>' : '') +
       '</div></div>';
     html += '<div class="print-body">';
     if(b.stats && b.stats.length){
@@ -761,8 +761,8 @@
     if(dateStr) metaParts.push(dateStr);
     var html = '<div class="print-block' + (b.brk ? ' page-break' : '') + '">';
     html += '<div class="print-banner"><div class="print-eyebrow">Footy Day Canteen</div>' +
-      '<div class="print-banner-row"><div class="print-banner-title">' + esc(sessionTitle()) + ' — ' + esc(title) + '</div>' +
-      (metaParts.length ? '<div class="print-banner-meta">' + esc(metaParts.join(' · ')) + '</div>' : '') +
+      '<div class="print-banner-row"><div class="print-banner-title">' + esc(sessionTitle()) + ' \u2014 ' + esc(title) + '</div>' +
+      (metaParts.length ? '<div class="print-banner-meta">' + esc(metaParts.join(' \u00b7 ')) + '</div>' : '') +
       '</div></div>';
     html += '<div class="sheet-body">';
     html += '<div class="sheet-classname">' + esc(b.className) + '</div>';
@@ -788,8 +788,8 @@
     var subParts = [];
     if(wj) subParts.push(wj + ' with juice');
     if(info.plain) subParts.push(info.plain + ' plain (no juice)');
-    var sub = subParts.length ? subParts.join(' · ') : null;
-    return {kind:'sheet', className:c, classMeta: yearLabel(c) + ' · ' + info.orders + ' orders',
+    var sub = subParts.length ? subParts.join(' \u00b7 ') : null;
+    return {kind:'sheet', className:c, classMeta: yearLabel(c) + ' \u00b7 ' + info.orders + ' orders',
       heroValue: info.hotdogs, heroLabel:'HOT DOGS TO PACK', heroAccent:'red',
       flavours: flavours, sub: sub, emptyMsg: flavours.length ? null : 'No hot dogs ordered', brk:brk};
   }
@@ -803,7 +803,7 @@
       if(n) flavours.push({name:FLAVOUR_LABEL[fk], count:n, color:colors[fk]});
     });
     flavours.sort(function(a,b){ return b.count-a.count; });
-    return {kind:'sheet', className:c, classMeta: yearLabel(c) + ' · ' + info.orders + ' orders',
+    return {kind:'sheet', className:c, classMeta: yearLabel(c) + ' \u00b7 ' + info.orders + ' orders',
       heroValue: total, heroLabel:'JUICE BOXES TO PACK', heroAccent:'green',
       flavours: flavours, emptyMsg: flavours.length ? null : 'No juice ordered', brk:brk};
   }
@@ -825,7 +825,7 @@
   function attemptPrint(){
     document.body.classList.add('print-scoped');
     try{ window.print(); }
-    catch(e){ showToast("Couldn't open the print dialog here — open this page in its own tab, then press Ctrl/Cmd+P."); }
+    catch(e){ showToast("Couldn't open the print dialog here \u2014 open this page in its own tab, then press Ctrl/Cmd+P."); }
     setTimeout(function(){ document.body.classList.remove('print-scoped'); }, 400);
   }
   window.addEventListener('afterprint', function(){ document.body.classList.remove('print-scoped'); });
@@ -845,7 +845,7 @@
   function yearListOrdered(d){
     return YEAR_ORDER.filter(function(y){ return d.byYear[y] && d.byYear[y].orders>0; });
   }
-  function scopeForClass(c){ return yearLabel(c) + ' — ' + c; }
+  function scopeForClass(c){ return yearLabel(c) + ' \u2014 ' + c; }
 
   // ---- row builders ----
   function juiceItemRows(info){
@@ -877,7 +877,7 @@
     return rows;
   }
   function breakdownText(rows){
-    return rows.length ? rows.map(function(r){ return r[1] + ' × ' + r[0]; }).join('\n') : '—';
+    return rows.length ? rows.map(function(r){ return r[1] + ' x ' + r[0]; }).join('\n') : '\u2014';
   }
 
   // ---- block builders ----
@@ -1043,7 +1043,7 @@
     var text = lines.join("\n");
     if(navigator.clipboard && navigator.clipboard.writeText){
       navigator.clipboard.writeText(text).then(function(){ showToast("Copied CSV to clipboard"); })
-        .catch(function(){ showToast("Couldn't copy — select and copy manually"); });
+        .catch(function(){ showToast("Couldn't copy \u2014 select and copy manually"); });
     } else {
       showToast("Clipboard not available in this browser");
     }
@@ -1076,10 +1076,10 @@
   }
 
   var RECOMMENDED = [
-    ["🌭 Hot dog packing sheet — big print, one page per class", "hotdogPackingByClass"],
-    ["🧃 Juice packing sheet — big print, one page per class", "juicePackingByClass"],
+    ["Hot dog packing sheet \u2014 big print, one page per class", "hotdogPackingByClass"],
+    ["Juice packing sheet \u2014 big print, one page per class", "juicePackingByClass"],
     ["Class flavour summary PDF", "classFlavourSummary"],
-    ["Class flavour summary — one page per class", "classFlavourSummaryPerClass"],
+    ["Class flavour summary \u2014 one page per class", "classFlavourSummaryPerClass"],
     ["Ordering sheet PDF", "orderingSheet"]
   ];
   var ALL_EXPORTS = [
@@ -1088,12 +1088,12 @@
     ["Year breakdown PDF", "yearBreakdown"],
     ["Class flavour summary PDF", "classFlavourSummary"],
     ["Picking / packing list PDF", "pickingList"],
-    ["Packing slips — by class", "slipsByClass"],
-    ["Packing slips — by year level", "slipsByYear"],
-    ["Juice itemised — one page per class", "juicePerClass"],
-    ["Juice itemised — one page per year", "juicePerYear"],
-    ["Hot dog itemised — one page per class", "hotdogPerClass"],
-    ["Hot dog itemised — one page per year", "hotdogPerYear"]
+    ["Packing slips \u2014 by class", "slipsByClass"],
+    ["Packing slips \u2014 by year level", "slipsByYear"],
+    ["Juice itemised \u2014 one page per class", "juicePerClass"],
+    ["Juice itemised \u2014 one page per year", "juicePerYear"],
+    ["Hot dog itemised \u2014 one page per class", "hotdogPerClass"],
+    ["Hot dog itemised \u2014 one page per year", "hotdogPerYear"]
   ];
 
   function itemHtml(label, action, gold){
