@@ -1,0 +1,1114 @@
+<title>Footy Day Lunch Sorter</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --paper:#FFFFFF;
+    --paper-sunk:#F7F7F8;
+    --ink:#15171C;
+    --ink-soft:#61646E;
+    --ink-faint:#9497A1;
+    --line:#E6E7EB;
+    --line-strong:#D3D5DC;
+    --blue:#2E5FE8;
+    --blue-soft:#EAF0FE;
+    --red:#D8392B;
+    --red-soft:#FCEAE8;
+    --green:#1E8A5F;
+    --green-soft:#E7F6EF;
+    --gold:#B4802A;
+    --shadow: 0 1px 2px rgba(21,23,28,0.05), 0 6px 18px -10px rgba(21,23,28,0.16);
+
+    --side-bg:#14151B;
+    --side-bg-raised:#1C1E26;
+    --side-line:#2C2E38;
+    --side-ink:#F3F1EA;
+    --side-ink-soft:#A6A8B3;
+    --side-gold-a:#3A2B12;
+    --side-gold-b:#6B4A18;
+    --side-gold-ink:#F4DDA8;
+    --side-gold-border:#8A6423;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#17181C;
+      --paper-sunk:#1D1F25;
+      --ink:#F1EFE9;
+      --ink-soft:#ABAEB8;
+      --ink-faint:#7B7E88;
+      --line:#2C2E36;
+      --line-strong:#3B3E48;
+      --blue:#7C9DFF;
+      --blue-soft:#1C2440;
+      --red:#F08276;
+      --red-soft:#3A2220;
+      --green:#6FCB9F;
+      --green-soft:#1B3128;
+      --gold:#E3B565;
+      --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 6px 18px -10px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#17181C;
+    --paper-sunk:#1D1F25;
+    --ink:#F1EFE9;
+    --ink-soft:#ABAEB8;
+    --ink-faint:#7B7E88;
+    --line:#2C2E36;
+    --line-strong:#3B3E48;
+    --blue:#7C9DFF;
+    --blue-soft:#1C2440;
+    --red:#F08276;
+    --red-soft:#3A2220;
+    --green:#6FCB9F;
+    --green-soft:#1B3128;
+    --gold:#E3B565;
+    --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 6px 18px -10px rgba(0,0,0,0.5);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper-sunk);
+    color:var(--ink);
+    font-family:'Inter',ui-sans-serif,system-ui,sans-serif;
+    padding-inline:20px;
+    padding-block:24px 56px;
+  }
+  h1,h2,h3{font-family:'Fraunces',Georgia,serif; text-wrap:balance; margin:0;}
+  .mono{font-family:'IBM Plex Mono',ui-monospace,monospace; font-variant-numeric:tabular-nums;}
+  button, select, input{font-family:inherit;}
+
+  .shell{max-width:1220px; margin:0 auto;}
+
+  /* ---------- top bar ---------- */
+  .topbar{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:22px;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand .mark{
+    width:30px; height:30px; border-radius:8px; background:var(--ink); color:var(--paper);
+    display:flex; align-items:center; justify-content:center; font-size:15px; flex:none;
+  }
+  .brand h1{font-size:19px; font-weight:700; font-family:'Inter',sans-serif; letter-spacing:-.01em;}
+  .file-btn{
+    display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+    background:var(--paper); border:1.5px solid var(--line-strong); color:var(--ink);
+    font-weight:600; font-size:13px; padding:8px 14px; border-radius:8px;
+    box-shadow:var(--shadow);
+  }
+  .file-btn input{display:none;}
+
+  /* ---------- layout grid ---------- */
+  .grid{display:grid; grid-template-columns:1fr 320px; gap:20px; align-items:start;}
+  @media (max-width:900px){ .grid{grid-template-columns:1fr;} }
+
+  .card{
+    background:var(--paper); border:1px solid var(--line); border-radius:14px;
+    box-shadow:var(--shadow); padding:18px 20px;
+  }
+
+  /* ---------- session bar ---------- */
+  .session-bar{display:grid; grid-template-columns:1.1fr 1.2fr .8fr 1.3fr; gap:16px; margin-bottom:16px;}
+  @media (max-width:640px){ .session-bar{grid-template-columns:1fr;} }
+  .field-label{font-size:11.5px; font-weight:600; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px; display:block;}
+  .field-input{
+    width:100%; border:1px solid var(--line-strong); border-radius:8px; padding:9px 11px;
+    font-size:14px; color:var(--ink); background:var(--paper);
+  }
+
+  /* ---------- status + stat tiles ---------- */
+  .status-row{display:flex; flex-wrap:wrap; align-items:center; gap:14px 22px; margin-bottom:16px;}
+  .live-dot{display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:700; color:var(--green); text-transform:uppercase; letter-spacing:.04em;}
+  .live-dot::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--green);}
+  .tile-row{display:flex; gap:10px; flex-wrap:wrap;}
+  .tile{
+    border:1.5px solid var(--line-strong); border-radius:10px; padding:8px 14px; min-width:88px;
+    background:var(--paper);
+  }
+  .tile .tl{font-size:10.5px; font-weight:700; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.06em;}
+  .tile .tv{font-size:19px; font-weight:700; margin-top:2px;}
+  .tile.blue{border-color:var(--blue);} .tile.blue .tv{color:var(--blue);}
+  .tile.red{border-color:var(--red);} .tile.red .tv{color:var(--red);}
+  .tile.green{border-color:var(--green);} .tile.green .tv{color:var(--green);}
+
+  /* ---------- upload card ---------- */
+  .upload-card h2{font-size:16px; font-weight:700; font-family:'Inter',sans-serif;}
+  .upload-card p{color:var(--ink-soft); font-size:13.5px; margin:6px 0 12px; max-width:60ch;}
+  .upload-actions{display:flex; flex-wrap:wrap; gap:10px; align-items:center;}
+  .btn{
+    display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+    background:var(--ink); color:var(--paper); border:none;
+    font-weight:600; font-size:13.5px; padding:9px 16px; border-radius:8px;
+  }
+  .btn.ghost{background:var(--paper); color:var(--ink); border:1.5px solid var(--line-strong);}
+
+  /* ---------- breakdown ---------- */
+  .breakdown-tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:20px;}
+  .breakdown-tiles .tile{padding:14px 16px;}
+  .breakdown-tiles .tv{font-size:26px;}
+
+  .year-group{margin-bottom:22px;}
+  .year-group:last-child{margin-bottom:0;}
+  .year-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid var(--line);}
+  .year-head h3{font-size:16px; font-weight:700; font-family:'Inter',sans-serif;}
+  .year-head .sub{font-size:12px; color:var(--ink-faint);}
+  table.data{width:100%; border-collapse:collapse;}
+  table.data th{
+    text-align:right; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
+    color:var(--ink-faint); padding:5px 8px; border-bottom:1px solid var(--line);
+  }
+  table.data th:first-child, table.data td:first-child{text-align:left;}
+  table.data td{padding:7px 8px; font-size:13.5px; border-bottom:1px solid var(--line); text-align:right;}
+  table.data td:first-child{font-weight:600;}
+  table.data td.num, table.data th.num{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;}
+  table.data tbody tr:last-child td{border-bottom:none;}
+  .table-scroll{overflow-x:auto;}
+
+  .flavour-tables{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:22px;}
+  @media (max-width:640px){ .flavour-tables{grid-template-columns:1fr;} }
+  .flavour-card h3{font-size:14.5px; font-weight:700; font-family:'Inter',sans-serif;}
+  .flavour-card .sub{font-size:12px; color:var(--ink-faint); font-weight:600;}
+  .flavour-card .head-row{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;}
+
+  /* ---------- sidebar: reporting center ---------- */
+  .sidebar{
+    background:var(--side-bg); border-radius:14px; color:var(--side-ink); padding:18px;
+    box-shadow:var(--shadow); position:sticky; top:20px;
+  }
+  .sidebar-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .sidebar-head h2{font-size:14px; font-weight:700; font-family:'Inter',sans-serif; letter-spacing:.01em;}
+  .badge{
+    background:var(--side-bg-raised); color:var(--side-ink-soft); font-size:11px; font-weight:700;
+    border-radius:999px; padding:2px 9px; border:1px solid var(--side-line);
+  }
+  .sidebar-label{
+    font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--side-ink-soft);
+    margin:16px 0 8px;
+  }
+  .sidebar-label:first-of-type{margin-top:0;}
+  .exp-list{display:flex; flex-direction:column; gap:6px;}
+  .exp-item{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:var(--side-bg-raised); border:1px solid var(--side-line); border-radius:9px;
+    padding:9px 12px; cursor:pointer; text-align:left; width:100%; color:var(--side-ink);
+    font-size:12.5px; font-weight:600; line-height:1.3;
+  }
+  .exp-item svg{flex:none; opacity:.75;}
+  .exp-item:hover{border-color:var(--side-ink-soft);}
+  .exp-item.gold{
+    background:linear-gradient(135deg, var(--side-gold-a), var(--side-gold-b));
+    border-color:var(--side-gold-border); color:var(--side-gold-ink);
+  }
+  .exp-item.gold:hover{border-color:var(--side-gold-ink);}
+  .exp-toggle{
+    background:none; border:none; color:var(--side-ink-soft); font-size:10.5px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.07em; cursor:pointer; display:flex; align-items:center;
+    justify-content:space-between; width:100%; padding:6px 2px; margin-top:14px;
+  }
+  .exp-toggle svg{transition:transform .15s ease;}
+  .exp-toggle.open svg{transform:rotate(180deg);}
+  .exp-panel{display:flex; flex-direction:column; gap:6px; margin-top:8px;}
+  .exp-panel[hidden]{display:none;}
+
+  .targeted{margin-top:8px;}
+  .targeted-row{display:flex; gap:8px; align-items:center; margin-bottom:9px;}
+  .targeted-row:last-child{margin-bottom:0;}
+  .targeted-row label{font-size:11px; color:var(--side-ink-soft); font-weight:700; text-transform:uppercase; letter-spacing:.05em; width:44px; flex:none;}
+  .targeted-row select{
+    flex:1; background:var(--side-bg-raised); border:1px solid var(--side-line); color:var(--side-ink);
+    border-radius:7px; padding:7px 9px; font-size:12.5px;
+  }
+  .icon-btn{
+    background:var(--side-bg-raised); border:1px solid var(--side-line); color:var(--side-ink);
+    border-radius:7px; width:32px; height:32px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; flex:none;
+  }
+  .icon-btn:hover{border-color:var(--side-ink-soft);}
+
+  .toast{
+    position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(0); opacity:0;
+    background:var(--ink); color:var(--paper); padding:10px 18px; border-radius:9px; font-size:13px; font-weight:600;
+    box-shadow:var(--shadow); pointer-events:none; transition:opacity .2s ease, transform .2s ease; z-index:50;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(-6px);}
+
+  .check{
+    display:flex; align-items:center; gap:9px; background:var(--green-soft); color:var(--green);
+    border-radius:10px; padding:10px 14px; font-size:13px; font-weight:600; margin-bottom:16px;
+  }
+  .flag{background:var(--red-soft); color:var(--red); border-radius:10px; padding:10px 14px; font-size:13px; font-weight:600; margin-bottom:16px;}
+
+  footer{margin-top:36px; padding-top:14px; border-top:1px solid var(--line); font-size:12px; color:var(--ink-faint); text-align:center;}
+
+  /* ---------- report preview modal ---------- */
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(10,11,14,0.55); z-index:80;
+    display:flex; align-items:flex-start; justify-content:center; padding:32px 16px;
+    overflow-y:auto;
+  }
+  .modal-backdrop[hidden]{display:none;}
+  .modal-card{
+    background:var(--paper); color:var(--ink); border-radius:14px; max-width:760px; width:100%;
+    box-shadow:0 20px 60px -20px rgba(0,0,0,0.5); overflow:hidden;
+  }
+  .modal-head{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
+    padding:18px 22px; border-bottom:1px solid var(--line);
+  }
+  .modal-head h2{font-size:17px; font-family:'Inter',sans-serif; font-weight:700;}
+  .modal-actions{display:flex; gap:8px; flex:none;}
+  .modal-close{
+    background:none; border:1.5px solid var(--line-strong); color:var(--ink-soft); border-radius:8px;
+    width:32px; height:32px; cursor:pointer; font-size:16px; line-height:1;
+  }
+  .modal-hint{
+    background:var(--paper-sunk); color:var(--ink-soft); font-size:12.5px; padding:10px 22px; border-bottom:1px solid var(--line);
+  }
+  .modal-body{padding:22px; max-height:70vh; overflow-y:auto; background:var(--paper-sunk);}
+
+  /* ---------- report pages (banner + stats + table) ---------- */
+  .print-block{
+    background:var(--paper); border:1px solid var(--line); border-radius:12px; overflow:hidden;
+    margin-bottom:18px; box-shadow:var(--shadow);
+  }
+  .print-block:last-child{margin-bottom:0;}
+  .print-banner{background:#12141f; color:#F3F1EA; padding:16px 22px;}
+  .print-eyebrow{font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:#A6A8B3; margin-bottom:6px;}
+  .print-banner-row{display:flex; justify-content:space-between; align-items:baseline; gap:14px; flex-wrap:wrap;}
+  .print-banner-title{font-size:15.5px; font-weight:700; font-family:'Inter',sans-serif;}
+  .print-banner-meta{font-size:12.5px; font-weight:700; color:#D8D6CE; white-space:nowrap;}
+  .print-body{padding:18px 22px 22px;}
+  .print-stats{display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;}
+  .print-stat{border:1px solid var(--line-strong); border-radius:9px; padding:9px 15px; background:var(--paper-sunk); min-width:100px;}
+  .print-stat .psl{font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint);}
+  .print-stat .psv{font-size:19px; font-weight:700; margin-top:2px;}
+
+  table.rtable{width:100%; border-collapse:collapse; border-radius:8px; overflow:hidden;}
+  table.rtable th, table.rtable td{padding:9px 13px; font-size:13px;}
+  table.rtable th{font-weight:700; color:#fff; text-align:right;}
+  table.rtable th:first-child, table.rtable td:first-child{text-align:left;}
+  table.rtable td{border-bottom:1px solid var(--line); text-align:right; vertical-align:top;}
+  table.rtable td.txt{text-align:left; line-height:1.55;}
+  table.rtable tbody tr:nth-child(even){background:var(--paper-sunk);}
+  table.rtable tbody tr:last-child td{border-bottom:none;}
+  table.rtable tfoot td{font-weight:700; background:#12141f; color:#fff; padding:10px 13px;}
+  table.rtable.accent-green thead th{background:var(--green);}
+  table.rtable.accent-red thead th{background:var(--red);}
+  table.rtable.accent-navy thead th{background:#12141f;}
+  .table-scroll-print{overflow-x:auto;}
+
+  /* ---------- packing sheets (big-print, for the people packing food) ---------- */
+  .sheet-body{padding:30px 30px 34px; text-align:center;}
+  .sheet-classname{font-family:'Fraunces',serif; font-weight:700; font-size:38px; line-height:1.05; margin-bottom:4px;}
+  .sheet-classmeta{font-size:12.5px; color:var(--ink-soft); font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-bottom:24px;}
+  .sheet-hero{
+    display:inline-flex; flex-direction:column; align-items:center; padding:20px 56px;
+    border:3px solid var(--ink); border-radius:18px; margin-bottom:6px;
+  }
+  .sheet-hero.accent-red{border-color:var(--red);}
+  .sheet-hero.accent-green{border-color:var(--green);}
+  .sheet-hero .shv{font-family:'Fraunces',serif; font-weight:700; font-size:80px; line-height:1; font-variant-numeric:tabular-nums;}
+  .sheet-hero.accent-red .shv{color:var(--red);}
+  .sheet-hero.accent-green .shv{color:var(--green);}
+  .sheet-hero .shl{font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-soft); margin-top:8px;}
+  .sheet-sub{font-size:13.5px; color:var(--ink-faint); margin-top:14px;}
+  .sheet-flavours{margin-top:28px; text-align:left; border-top:1px solid var(--line); padding-top:6px;}
+  .sheet-flavour-row{display:flex; align-items:center; justify-content:space-between; gap:14px; padding:16px 4px; border-bottom:1px solid var(--line);}
+  .sheet-flavour-row:last-child{border-bottom:none;}
+  .sheet-flavour-name{display:flex; align-items:center; gap:13px; font-size:19px; font-weight:700;}
+  .sheet-check{
+    width:22px; height:22px; border:2px solid var(--line-strong); border-radius:6px; flex:none;
+  }
+  .sheet-dot{width:16px; height:16px; border-radius:50%; flex:none;}
+  .sheet-flavour-count{font-family:'Fraunces',serif; font-weight:700; font-size:34px; font-variant-numeric:tabular-nums;}
+  .sheet-empty{color:var(--ink-faint); font-size:14px; padding:18px 0; text-align:center;}
+  @media print{
+    .sheet-hero, table.rtable th, .sheet-check{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  }
+
+  /* ---------- print ---------- */
+  @media print{
+    body{padding:0; background:#fff; color:#111;}
+    body.print-scoped > .shell,
+    body.print-scoped .toast,
+    body.print-scoped .modal-hint,
+    body.print-scoped .modal-actions,
+    body.print-scoped .modal-close{display:none !important;}
+    body.print-scoped .modal-backdrop{
+      position:static !important; background:none !important; padding:0 !important; display:block !important;
+    }
+    body.print-scoped .modal-card{box-shadow:none !important; max-width:none !important; border-radius:0 !important; background:none !important;}
+    body.print-scoped .modal-head{display:none !important;}
+    body.print-scoped .modal-body{max-height:none !important; overflow:visible !important; padding:0 !important; background:#fff !important;}
+    .print-block{page-break-inside:avoid; box-shadow:none !important; border-color:#ccc !important;}
+    .print-block.page-break{page-break-after:always;}
+    .print-banner{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    table.rtable th{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    table.rtable tfoot td{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    table.rtable td{border-bottom:1px solid #ddd !important;}
+  }
+
+  @media (max-width:520px){
+    .topbar{flex-wrap:wrap;}
+    .tile-row{width:100%;}
+  }
+</style>
+
+<div class="shell">
+  <div class="topbar">
+    <div class="brand">
+      <div class="mark">&#127789;</div>
+      <h1>Footy Day Canteen</h1>
+    </div>
+    <label class="file-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+      Import CSV
+      <input type="file" id="csvInput" accept=".csv,text/csv" />
+    </label>
+  </div>
+
+  <div class="grid">
+    <!-- ===== main column ===== -->
+    <div>
+      <div class="card" style="margin-bottom:16px;">
+        <div class="session-bar">
+          <div>
+            <span class="field-label">Session name</span>
+            <input class="field-input" id="sessionName" value="Footy Day 1" />
+          </div>
+          <div>
+            <span class="field-label">Lunch item</span>
+            <input class="field-input" id="lunchItem" value="Hot dog + juice box" />
+          </div>
+          <div>
+            <span class="field-label">Date</span>
+            <input class="field-input" id="sessionDate" type="date" />
+          </div>
+          <div>
+            <span class="field-label">Source file</span>
+            <input class="field-input" id="sourceLabel" value="2026 BFG End of Term 3 Lunch — Footy Day 1" readonly style="color:var(--ink-soft);" />
+          </div>
+        </div>
+        <div class="status-row">
+          <span class="live-dot">Loaded session</span>
+          <div class="tile-row" id="topTiles"></div>
+        </div>
+      </div>
+
+      <div class="card upload-card" style="margin-bottom:16px;">
+        <h2>Upload data</h2>
+        <p>Import the CSV export from the school's online ordering system. Each row is one booking &mdash; the app reads the hot dog / juice text, the flavour, and the class, and totals them up.</p>
+        <div class="upload-actions">
+          <label class="btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+            Import CSV
+            <input type="file" accept=".csv,text/csv" id="csvInput2" style="display:none" />
+          </label>
+          <button class="btn ghost" id="copyCsvBtn">Copy raw data as CSV</button>
+        </div>
+      </div>
+
+      <div id="parseNote"></div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <h2 style="font-size:16px; font-family:'Inter',sans-serif; margin-bottom:14px;">Breakdown</h2>
+        <div class="breakdown-tiles" id="breakdownTiles"></div>
+        <div id="yearGroups"></div>
+      </div>
+
+      <div class="flavour-tables">
+        <div class="card flavour-card">
+          <div class="head-row"><h3>Hot dogs</h3><span class="sub mono" id="hotdogSub"></span></div>
+          <table class="data"><tbody id="hotdogFlavourBody"></tbody></table>
+        </div>
+        <div class="card flavour-card">
+          <div class="head-row"><h3>Juice flavours</h3><span class="sub mono" id="juiceSub"></span></div>
+          <table class="data"><tbody id="juiceFlavourBody"></tbody></table>
+        </div>
+      </div>
+
+      <footer>Parses the "Hotdog with Juice&nbsp;&#8209;&nbsp;N" / "Hotdog&nbsp;&#8209;&nbsp;N" booking text directly &mdash; re-run any term by importing a new export above.</footer>
+    </div>
+
+    <!-- ===== sidebar: reporting center ===== -->
+    <div class="sidebar">
+      <div class="sidebar-head"><h2>Reporting Center</h2><span class="badge" id="reportCount">9</span></div>
+
+      <div class="sidebar-label">Recommended</div>
+      <div class="exp-list" id="recommendedList"></div>
+
+      <button class="exp-toggle" id="allExportsToggle">All exports <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></button>
+      <div class="exp-panel" id="allExportsPanel" hidden></div>
+
+      <button class="exp-toggle" id="targetedToggle">Targeted packing slip <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></button>
+      <div class="exp-panel targeted" id="targetedPanel" hidden>
+        <div class="targeted-row">
+          <label>Year</label>
+          <select id="targetYearSelect"></select>
+          <button class="icon-btn" id="targetYearGo" title="Print this year's slip">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          </button>
+        </div>
+        <div class="targeted-row">
+          <label>Class</label>
+          <select id="targetClassSelect"></select>
+          <button class="icon-btn" id="targetClassGo" title="Print this class's slip">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="reportModal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2 id="reportModalTitle">Report</h2>
+      <div class="modal-actions">
+        <button class="btn" id="reportPrintBtn">Print / Save PDF</button>
+        <button class="modal-close" id="reportCloseBtn" aria-label="Close">&times;</button>
+      </div>
+    </div>
+    <div class="modal-hint">This report is generated on the page below. Use <b>Print / Save PDF</b> to print it or save it as a PDF. If the print dialog doesn't open, open this page in its own browser tab first, then press Ctrl/Cmd+P.</div>
+    <div class="modal-body" id="reportModalBody"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+
+  var CLASS_ORDER = ["FA","FB","FC","FD","1A","1B","1C","1D","2A","2B","2C","2D","3A","3B","3C","3D","4A","4B","4C","4D","5A","5B","5C","5D","6A","6B","6C","6D"];
+  var KINDER_ORDER = ["Banksia","Eucalyptus","Lily Pilly","Waratah"];
+  var FULL_ORDER = CLASS_ORDER.concat(KINDER_ORDER);
+  var YEAR_ORDER = ["Foundation","Year 1","Year 2","Year 3","Year 4","Year 5","Year 6","Kindergarten"];
+
+  var DEFAULT_DATA = [["Hotdog with Juice - 1", "Apple & Blackcurrant", "3D"], ["Hotdog with Juice - 1", "Apple", "1B"], ["Hotdog with Juice - 1", "Apple", "FC"], ["Hotdog with Juice - 1", "Apple", "6C"], ["Hotdog  - 1", "N/A", "5A"], ["Hotdog with Juice - 1", "Tropical", "5A"], ["Hotdog with Juice - 1", "Tropical", "2A"], ["Hotdog with Juice - 1", "Tropical", "FB"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "1C"], ["Hotdog with Juice - 1", "Apple", "6D"], ["Hotdog with Juice - 1", "Apple", "1C"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "FC"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "4D"], ["Hotdog with Juice - 1", "Apple", "5C"], ["Hotdog with Juice - 1", "Apple", "5A"], ["Hotdog  - 1", "Apple & Blackcurrant", "4D"], ["Hotdog  - 1", "N/A", "2B"], ["Hotdog with Juice - 1", "Apple", "5A"], ["Hotdog with Juice - 1", "Tropical", "2B"], ["Hotdog with Juice - 1", "Apple", "6A"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "4B"], ["Hotdog with Juice - 1", "Apple", "2D"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "3C"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "2B"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "2C"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "FA"], ["Hotdog with Juice - 1", "Apple", "Lily Pilly"], ["Hotdog with Juice - 1", "Apple", "5B"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "Eucalyptus"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "Lily Pilly"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "3B"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "FD"], ["Hotdog with Juice - 1", "Apple", "Lily Pilly"], ["Hotdog with Juice - 1", "Apple", "1B"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "Lily Pilly"], ["Hotdog with Juice - 1", "Apple", "Banksia"], ["Hotdog with Juice - 1", "Apple", "Waratah"], ["Hotdog with Juice - 1", "Apple", "5D"], ["Hotdog  - 1", "N/A", "FB"], ["Hotdog with Juice - 1", "Apple", "Eucalyptus"], ["Hotdog with Juice - 1", "Apple", "Lily Pilly"], ["Hotdog with Juice - 1", "Apple", "1B"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "3A"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "5A"], ["Hotdog with Juice - 1", "Apple", "Eucalyptus"], ["Hotdog with Juice - 1", "Apple", "1B"], ["Hotdog  - 1", "N/A", "FC"], ["Hotdog with Juice - 1", "Apple", "4B"], ["Hotdog with Juice - 1", "Apple", "4A"], ["Hotdog  - 1", "N/A", "1B"], ["Hotdog with Juice - 2", "Apple & Blackcurrant", "Lily Pilly"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "5D"], ["Hotdog with Juice - 1", "Apple", "FA"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "FB"], ["Hotdog with Juice - 1", "Tropical", "4B"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "5D"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "5A"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "3B"], ["Hotdog with Juice - 1", "Tropical", "5D"], ["Hotdog with Juice - 1", "Tropical", "3C"], ["Hotdog with Juice - 1", "Tropical", "6A"], ["Hotdog with Juice - 1", "Tropical", "6C"], ["Hotdog with Juice - 1", "Tropical", "4A"], ["Hotdog with Juice - 1", "Apple", "2C"], ["Hotdog with Juice - 1", "Tropical", "6B"], ["Hotdog with Juice - 1", "Tropical", "FB"], ["Hotdog with Juice - 1", "Tropical", "5B"], ["Hotdog with Juice - 1", "Tropical", "FC"], ["Hotdog with Juice - 1", "Tropical", "5C"], ["Hotdog  - 2", "N/A", "4C"], ["Hotdog  - 2", "N/A", "2A"], ["Hotdog with Juice - 1", "Tropical", "FC"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "1C"], ["Hotdog with Juice - 1", "Tropical", "3A"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "6C"], ["Hotdog  - 1", "N/A", "1B"], ["Hotdog with Juice - 1", "Apple", "2C"], ["Hotdog with Juice - 1", "Apple", "FD"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "6A"], ["Hotdog  - 1", "N/A", "4D"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "1D"], ["Hotdog  - 1", "N/A", "6C"], ["Hotdog  - 1", "N/A", "Waratah"], ["Hotdog  - 1", "Apple & Blackcurrant", "5D"], ["Hotdog with Juice - 1", "Apple", "1C"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "5B"], ["Hotdog with Juice - 1", "Tropical", "6A"], ["Hotdog with Juice - 1", "Apple", "2C"], ["Hotdog with Juice - 1", "Apple", "5A"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "3C"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "4A"], ["Hotdog  - 1", "Apple", "4B"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "2A"], ["Hotdog with Juice - 1", "Tropical", "Banksia"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "4D"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "3C"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "6B"], ["Hotdog with Juice - 1", "Tropical", "2A"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "3B"], ["Hotdog with Juice - 1", "Tropical", "2D"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "1D"], ["Hotdog with Juice - 1", "Apple", "Waratah"], ["Hotdog with Juice - 1", "Apple", "2C"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "3A"], ["Hotdog  - 1", "N/A", "Waratah"], ["Hotdog  - 2", "N/A", "4C"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "4B"], ["Hotdog with Juice - 1", "Apple", "2B"], ["Hotdog with Juice - 1", "Apple", "FD"], ["Hotdog with Juice - 1", "Apple", "5B"], ["Hotdog with Juice - 1", "Apple", "Waratah"], ["Hotdog with Juice - 1", "Tropical", "3A"], ["Hotdog with Juice - 1", "Apple", "Lily Pilly"], ["Hotdog with Juice - 1", "Apple", "FB"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "3B"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "1B"], ["Hotdog with Juice - 1", "Apple", "2B"], ["Hotdog with Juice - 1", "Apple", "5B"], ["Hotdog with Juice - 1", "Tropical", "1C"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "Banksia"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "Banksia"], ["Hotdog  - 1", "N/A", "6D"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "5A"], ["Hotdog with Juice - 1", "Apple", "Banksia"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "3B"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "1C"], ["Hotdog  - 1", "N/A", "2A"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "3B"], ["Hotdog  - 1", "Apple & Blackcurrant", "5D"], ["Hotdog with Juice - 1", "Apple", "Eucalyptus"], ["Hotdog with Juice - 1", "Apple", "Waratah"], ["Hotdog with Juice - 1", "Apple", "Eucalyptus"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "Lily Pilly"], ["Hotdog with Juice - 1", "Apple", "6B"], ["Hotdog with Juice - 1", "Tropical", "3A"], ["Hotdog with Juice - 1", "Tropical", "3D"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "6D"], ["Hotdog  - 1", "N/A", "5A"], ["Hotdog with Juice - 1", "Apple", "3D"], ["Hotdog with Juice - 1", "Tropical", "Banksia"], ["Hotdog with Juice - 1", "Apple", "Eucalyptus"], ["Hotdog with Juice - 1", "Apple", "FA"], ["Hotdog with Juice - 1", "Apple", "Waratah"], ["Hotdog with Juice - 1", "Tropical", "FA"], ["Hotdog with Juice - 1", "Apple", "Eucalyptus"], ["Hotdog with Juice - 1", "Tropical", "1A"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "2A"], ["Hotdog with Juice - 1  Hotdog  - 1", "Apple & Blackcurrant", "6C"], ["Hotdog  - 1", "Tropical", "4A"], ["Hotdog  - 1", "Tropical", "3A"], ["Hotdog  - 1", "Tropical", "FD"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "1D"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "2B"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "3C"], ["Hotdog with Juice - 1", "Tropical", "1C"], ["Hotdog with Juice - 1", "Tropical", "1D"], ["Hotdog with Juice - 1", "Tropical", "4D"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "4A"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "Eucalyptus"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "3B"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "3A"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "5D"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "4A"], ["Hotdog with Juice - 1", "Tropical", "FA"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "4B"], ["Hotdog with Juice - 1", "Apple", "4D"], ["Hotdog  - 1", "N/A", "Eucalyptus"], ["Hotdog with Juice - 1", "Tropical", "4B"], ["Hotdog with Juice - 1", "Apple", "1D"], ["Hotdog with Juice - 1", "Apple", "1A"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "3B"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "6B"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "4B"], ["Hotdog with Juice - 1", "Apple", "6A"], ["Hotdog with Juice - 1", "Apple", "6D"], ["Hotdog with Juice - 1", "Tropical", "1C"], ["Hotdog with Juice - 1", "Tropical", "4C"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "2A"], ["Hotdog with Juice - 1", "Apple", "Eucalyptus"], ["Hotdog with Juice - 1", "Tropical", "1C"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "2C"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "4C"], ["Hotdog with Juice - 1", "Tropical", "2B"], ["Hotdog with Juice - 1", "Apple", "6A"], ["Hotdog with Juice - 1", "Apple", "6B"], ["Hotdog with Juice - 1", "Apple", "4B"], ["Hotdog with Juice - 1", "Apple", "4C"], ["Hotdog with Juice - 1", "Apple", "1C"], ["Hotdog with Juice - 1", "Apple", "Banksia"], ["Hotdog with Juice - 1", "Apple", "Waratah"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "Eucalyptus"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "5B"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "FD"], ["Hotdog with Juice - 1", "Apple", "Eucalyptus"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "Eucalyptus"], ["Hotdog with Juice - 1", "Apple", "4B"], ["Hotdog with Juice - 1", "Apple", "5A"], ["Hotdog with Juice - 1", "Tropical", "Eucalyptus"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "6D"], ["Hotdog with Juice - 1", "Apple", "4C"], ["Hotdog with Juice - 1", "Tropical", "1A"], ["Hotdog with Juice - 1", "Tropical", "4C"], ["Hotdog with Juice - 1", "Tropical", "Lily Pilly"], ["Hotdog  - 1", "N/A", "Lily Pilly"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "5B"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "2C"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "3D"], ["Hotdog with Juice - 1", "Apple", "5B"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "Eucalyptus"], ["Hotdog with Juice - 1", "Tropical", "1A"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "5D"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "3A"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "3C"], ["Hotdog with Juice - 1", "Tropical", "6D"], ["Hotdog with Juice - 1", "Apple", "4D"], ["Hotdog with Juice - 1", "Apple", "2B"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "6B"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "4C"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "2C"], ["Hotdog with Juice - 1", "Tropical", "2B"], ["Hotdog with Juice - 1", "Tropical", "4D"], ["Hotdog with Juice - 1", "Tropical", "FD"], ["Hotdog with Juice - 1", "Apple", "2C"], ["Hotdog with Juice - 1", "Tropical", "1A"], ["Hotdog  - 1", "N/A", "6D"], ["Hotdog with Juice - 1", "Apple", "3C"], ["Hotdog with Juice - 1", "Tropical", "Banksia"], ["Hotdog with Juice - 1", "Tropical", "3B"], ["Hotdog with Juice - 1", "Tropical", "Banksia"], ["Hotdog with Juice - 1", "Apple", "Lily Pilly"], ["Hotdog  - 1", "N/A", "3B"], ["Hotdog with Juice - 1", "Apple", "Lily Pilly"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "2D"], ["Hotdog  - 1", "N/A", "5B"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "6A"], ["Hotdog with Juice - 1", "Tropical", "FC"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "4B"], ["Hotdog with Juice - 1", "Apple", "5B"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "4A"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "3D"], ["Hotdog  - 1", "N/A", "Banksia"], ["Hotdog with Juice - 1", "Apple", "FB"], ["Hotdog with Juice - 1", "Tropical", "4D"], ["Hotdog with Juice - 1", "Apple", "2C"], ["Hotdog with Juice - 1", "Apple", "4C"], ["Hotdog with Juice - 1", "Tropical", "Lily Pilly"], ["Hotdog with Juice - 1  Hotdog  - 1", "Apple", "1C"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "3A"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "Eucalyptus"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "4A"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "1B"], ["Hotdog with Juice - 1", "Tropical", "6D"], ["Hotdog with Juice - 1", "Tropical", "3D"], ["Hotdog with Juice - 1", "Apple", "FC"], ["Hotdog  - 1", "N/A", "5A"], ["Hotdog  - 1", "N/A", "4A"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "3A"], ["Hotdog with Juice - 1", "Tropical", "5A"], ["Hotdog  - 1", "N/A", "6B"], ["Hotdog with Juice - 1", "Apple", "2D"], ["Hotdog with Juice - 1", "Apple", "2B"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "4C"], ["Hotdog with Juice - 1", "Apple", "2A"], ["Hotdog with Juice - 1", "Apple", "FA"], ["Hotdog with Juice - 1", "Apple", "5B"], ["Hotdog with Juice - 1", "Tropical", "6B"], ["Hotdog with Juice - 1", "Apple", "Eucalyptus"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "Banksia"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "1C"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "1A"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "Eucalyptus"], ["Hotdog with Juice - 2", "Apple & Blackcurrant", "Eucalyptus"], ["Hotdog with Juice - 1", "Apple", "Banksia"], ["Hotdog with Juice - 1", "Apple", "Eucalyptus"], ["Hotdog with Juice - 1", "Apple", "Waratah"], ["Hotdog with Juice - 1", "Apple", "Eucalyptus"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "Eucalyptus"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "Eucalyptus"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "FC"], ["Hotdog with Juice - 1", "Apple & Blackcurrant", "Eucalyptus"], ["Hotdog with Juice - 1", "Apple", "Eucalyptus"]];
+  var DEFAULT_LABEL = "2026 BFG End of Term 3 Lunch — Footy Day 1";
+
+  function flavourKey(f){
+    if(!f) return "none";
+    var s = f.trim().toLowerCase();
+    if(s === "n/a" || s === "") return "none";
+    if(s.indexOf("blackcurrant") > -1) return "ab";
+    if(s.indexOf("trop") > -1) return "trop";
+    if(s.indexOf("apple") > -1) return "apple";
+    return "other:" + f.trim();
+  }
+  var FLAVOUR_LABEL = {apple:"Apple", ab:"Apple & Blackcurrant", trop:"Tropical"};
+
+  var COMBO_RE = /Hotdog\s+with\s+Juice\s*-\s*(\d+)/ig;
+  var PLAIN_RE = /Hotdog\s*-\s*(\d+)/ig;
+
+  function blankInfo(){ return {combos:{}, plain:0, orders:0, hotdogs:0, members:[]}; }
+  function juiceTotal(info){ return (info.combos.apple||0) + (info.combos.ab||0) + (info.combos.trop||0); }
+
+  function parseRows(rows){
+    var byClass = {};
+    var flavourTotals = {};
+    var totalHotdogs = 0, totalJuiceHotdogs = 0, totalPlainHotdogs = 0, totalOrders = rows.length;
+    var unmatched = [];
+
+    FULL_ORDER.forEach(function(c){ byClass[c] = blankInfo(); });
+
+    rows.forEach(function(row){
+      var item = (row[0]||"").trim();
+      var juice = (row[1]||"").trim();
+      var cls = (row[2]||"").trim();
+      if(!byClass[cls]) byClass[cls] = blankInfo();
+      byClass[cls].orders += 1;
+
+      var comboMatches = [];
+      var m;
+      COMBO_RE.lastIndex = 0;
+      while((m = COMBO_RE.exec(item)) !== null){ comboMatches.push(parseInt(m[1],10)); }
+      var stripped = item.replace(COMBO_RE, "");
+      var plainMatches = [];
+      PLAIN_RE.lastIndex = 0;
+      while((m = PLAIN_RE.exec(stripped)) !== null){ plainMatches.push(parseInt(m[1],10)); }
+
+      if(comboMatches.length === 0 && plainMatches.length === 0){ unmatched.push(row); return; }
+
+      var fk = flavourKey(juice);
+      comboMatches.forEach(function(n){
+        totalHotdogs += n; totalJuiceHotdogs += n;
+        byClass[cls].hotdogs += n;
+        byClass[cls].combos[fk] = (byClass[cls].combos[fk]||0) + n;
+        flavourTotals[fk] = (flavourTotals[fk]||0) + n;
+      });
+      plainMatches.forEach(function(n){
+        totalHotdogs += n; totalPlainHotdogs += n;
+        byClass[cls].hotdogs += n;
+        byClass[cls].plain += n;
+      });
+    });
+
+    return {byClass:byClass, flavourTotals:flavourTotals, totalHotdogs:totalHotdogs,
+            totalJuiceHotdogs:totalJuiceHotdogs, totalPlainHotdogs:totalPlainHotdogs,
+            totalOrders:totalOrders, unmatched:unmatched};
+  }
+
+  function yearLabel(cls){
+    if(/^F[A-D]$/i.test(cls)) return "Foundation";
+    var m = cls.match(/^(\d+)[A-Za-z]$/);
+    if(m) return "Year " + m[1];
+    if(KINDER_ORDER.indexOf(cls) !== -1) return "Kindergarten";
+    return "Other";
+  }
+
+  function aggregateByYear(byClass){
+    var byYear = {};
+    YEAR_ORDER.forEach(function(y){ byYear[y] = blankInfo(); });
+    Object.keys(byClass).forEach(function(cls){
+      var info = byClass[cls];
+      if(!info || info.orders === 0) return;
+      var y = yearLabel(cls);
+      if(!byYear[y]) byYear[y] = blankInfo();
+      var yi = byYear[y];
+      yi.orders += info.orders; yi.hotdogs += info.hotdogs; yi.plain += info.plain;
+      ["ab","apple","trop"].forEach(function(fk){ if(info.combos[fk]) yi.combos[fk] = (yi.combos[fk]||0) + info.combos[fk]; });
+      yi.members.push(cls);
+    });
+    return byYear;
+  }
+
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]; }); }
+
+  var currentData = null;
+
+  // ---------------- rendering the dashboard ----------------
+  function tileHtml(label, value, cls){
+    return '<div class="tile ' + (cls||'') + '"><div class="tl">' + label + '</div><div class="tv mono">' + value + '</div></div>';
+  }
+
+  function render(rows, label){
+    var d = parseRows(rows);
+    d.byYear = aggregateByYear(d.byClass);
+    currentData = d;
+    document.getElementById('sourceLabel').value = label;
+
+    var noteEl = document.getElementById('parseNote');
+    if(d.unmatched.length === 0){
+      noteEl.innerHTML = '<div class="check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>All ' + d.totalOrders + ' bookings parsed &mdash; no unrecognised rows.</div>';
+    } else {
+      noteEl.innerHTML = '<div class="flag">' + d.unmatched.length + ' row(s) could not be read and were skipped &mdash; check the booking text for: ' +
+        d.unmatched.slice(0,5).map(function(r){ return esc(r[0]); }).join(', ') + '</div>';
+    }
+
+    var classesWithOrders = FULL_ORDER.filter(function(c){ return d.byClass[c] && d.byClass[c].orders>0; })
+      .concat(Object.keys(d.byClass).filter(function(c){ return FULL_ORDER.indexOf(c)===-1 && d.byClass[c].orders>0; }));
+
+    document.getElementById('topTiles').innerHTML =
+      tileHtml('Orders', d.totalOrders, 'blue') +
+      tileHtml('Hot dogs', d.totalHotdogs, 'red') +
+      tileHtml('Juice', d.totalJuiceHotdogs, 'green') +
+      tileHtml('Classes', classesWithOrders.length, '');
+
+    document.getElementById('breakdownTiles').innerHTML =
+      tileHtml('Orders', d.totalOrders, 'blue') +
+      tileHtml('Hot dogs', d.totalHotdogs, 'red') +
+      tileHtml('Juice boxes', d.totalJuiceHotdogs, 'green');
+
+    // by-year grouped tables
+    var html = "";
+    YEAR_ORDER.forEach(function(y){
+      var yi = d.byYear[y];
+      if(!yi || yi.orders === 0) return;
+      var members = yi.members.slice();
+      // keep canonical order within group
+      var ordered = (y === "Kindergarten" ? KINDER_ORDER : CLASS_ORDER).filter(function(c){ return members.indexOf(c) !== -1; });
+      html += '<div class="year-group"><div class="year-head"><h3>' + y + '</h3><span class="sub">' +
+        yi.orders + ' orders &middot; ' + yi.hotdogs + ' hot dogs &middot; ' + juiceTotal(yi) + ' juice</span></div>' +
+        '<div class="table-scroll"><table class="data"><thead><tr><th>Class</th><th class="num">Orders</th><th class="num">Hot dogs</th><th class="num">Juice</th></tr></thead><tbody>';
+      ordered.forEach(function(c){
+        var ci = d.byClass[c];
+        html += '<tr><td>' + esc(c) + '</td><td class="num">' + ci.orders + '</td><td class="num">' + ci.hotdogs + '</td><td class="num">' + juiceTotal(ci) + '</td></tr>';
+      });
+      html += '</tbody></table></div></div>';
+    });
+    document.getElementById('yearGroups').innerHTML = html;
+
+    // hot dog / juice flavour summary tables
+    document.getElementById('hotdogSub').textContent = d.totalHotdogs + ' total';
+    document.getElementById('hotdogFlavourBody').innerHTML =
+      '<tr><td>With juice</td><td class="num">' + d.totalJuiceHotdogs + '</td></tr>' +
+      '<tr><td>Hot dog only</td><td class="num">' + d.totalPlainHotdogs + '</td></tr>';
+
+    document.getElementById('juiceSub').textContent = d.totalJuiceHotdogs + ' boxes';
+    var jHtml = "";
+    ["ab","apple","trop"].forEach(function(fk){
+      jHtml += '<tr><td>' + FLAVOUR_LABEL[fk] + '</td><td class="num">' + (d.flavourTotals[fk]||0) + '</td></tr>';
+    });
+    document.getElementById('juiceFlavourBody').innerHTML = jHtml;
+
+    populateTargeted(d, classesWithOrders);
+  }
+
+  function populateTargeted(d, classesWithOrders){
+    var years = YEAR_ORDER.filter(function(y){ return d.byYear[y] && d.byYear[y].orders>0; });
+    var ySel = document.getElementById('targetYearSelect');
+    ySel.innerHTML = years.map(function(y){ return '<option value="'+esc(y)+'">'+esc(y)+'</option>'; }).join('');
+    var cSel = document.getElementById('targetClassSelect');
+    cSel.innerHTML = classesWithOrders.map(function(c){ return '<option value="'+esc(c)+'">'+esc(c)+'</option>'; }).join('');
+  }
+
+  // ---------------- print report builder ----------------
+  function sessionTitle(){
+    return (document.getElementById('sessionName').value || "Lunch Session");
+  }
+
+  function formatDate(v){
+    if(!v) return '';
+    var parts = v.split('-'); if(parts.length !== 3) return v;
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var mi = parseInt(parts[1],10) - 1;
+    if(mi < 0 || mi > 11) return v;
+    return parseInt(parts[2],10) + ' ' + months[mi] + ' ' + parts[0];
+  }
+
+  // block = {scope, accent:'green'|'red'|'navy', stats:[[label,val],...], tableHead:[...], colAlign:['left'|'right',...],
+  //          tableRows:[[...]], totalRow:[...]|null, brk:bool}
+  function renderBlock(title, b){
+    var dateStr = formatDate(document.getElementById('sessionDate').value);
+    var metaParts = [];
+    if(b.scope) metaParts.push(b.scope);
+    if(dateStr) metaParts.push(dateStr);
+    var html = '<div class="print-block' + (b.brk ? ' page-break' : '') + '">';
+    html += '<div class="print-banner"><div class="print-eyebrow">Footy Day Canteen</div>' +
+      '<div class="print-banner-row"><div class="print-banner-title">' + esc(sessionTitle()) + ' — ' + esc(title) + '</div>' +
+      (metaParts.length ? '<div class="print-banner-meta">' + esc(metaParts.join(' · ')) + '</div>' : '') +
+      '</div></div>';
+    html += '<div class="print-body">';
+    if(b.stats && b.stats.length){
+      html += '<div class="print-stats">' + b.stats.map(function(s){
+        return '<div class="print-stat"><div class="psl">' + esc(s[0]) + '</div><div class="psv mono">' + esc(String(s[1])) + '</div></div>';
+      }).join('') + '</div>';
+    }
+    if(b.tableHead){
+      var align = b.colAlign || b.tableHead.map(function(_, i){ return i===0 ? 'left' : 'right'; });
+      html += '<div class="table-scroll-print"><table class="rtable accent-' + (b.accent||'navy') + '"><thead><tr>' +
+        b.tableHead.map(function(h,i){ return '<th style="text-align:' + align[i] + '">' + esc(h) + '</th>'; }).join('') +
+        '</tr></thead><tbody>';
+      b.tableRows.forEach(function(r){
+        html += '<tr>' + r.map(function(c,i){
+          var cls = align[i] === 'left' ? ' class="txt"' : '';
+          var val = String(c).split('\n').map(esc).join('<br>');
+          return '<td' + cls + '>' + val + '</td>';
+        }).join('') + '</tr>';
+      });
+      html += '</tbody>';
+      if(b.totalRow){
+        html += '<tfoot><tr>' + b.totalRow.map(function(c,i){
+          return i===0 ? '<td colspan="' + (b.tableHead.length-1) + '">' + esc(String(c)) + '</td>' : '<td style="text-align:right">' + esc(String(c)) + '</td>';
+        }).join('') + '</tr></tfoot>';
+      }
+      html += '</table></div>';
+    }
+    html += '</div></div>';
+    return html;
+  }
+
+  // sheet block = {kind:'sheet', scope, brk, className, classMeta, heroValue, heroLabel, heroAccent,
+  //                sub, flavours:[{name,count,color}]|null, emptyMsg}
+  function renderSheetBlock(title, b){
+    var dateStr = formatDate(document.getElementById('sessionDate').value);
+    var metaParts = [];
+    if(dateStr) metaParts.push(dateStr);
+    var html = '<div class="print-block' + (b.brk ? ' page-break' : '') + '">';
+    html += '<div class="print-banner"><div class="print-eyebrow">Footy Day Canteen</div>' +
+      '<div class="print-banner-row"><div class="print-banner-title">' + esc(sessionTitle()) + ' — ' + esc(title) + '</div>' +
+      (metaParts.length ? '<div class="print-banner-meta">' + esc(metaParts.join(' · ')) + '</div>' : '') +
+      '</div></div>';
+    html += '<div class="sheet-body">';
+    html += '<div class="sheet-classname">' + esc(b.className) + '</div>';
+    html += '<div class="sheet-classmeta">' + esc(b.classMeta) + '</div>';
+    html += '<div class="sheet-hero accent-' + b.heroAccent + '"><div class="shv mono">' + esc(String(b.heroValue)) + '</div><div class="shl">' + esc(b.heroLabel) + '</div></div>';
+    if(b.sub) html += '<div class="sheet-sub">' + esc(b.sub) + '</div>';
+    if(b.flavours && b.flavours.length){
+      html += '<div class="sheet-flavours">' + b.flavours.map(function(f){
+        return '<div class="sheet-flavour-row"><div class="sheet-flavour-name"><span class="sheet-check"></span><span class="sheet-dot" style="background:' + f.color + '"></span>' + esc(f.name) + '</div><div class="sheet-flavour-count mono">' + esc(String(f.count)) + '</div></div>';
+      }).join('') + '</div>';
+    } else if(b.emptyMsg){
+      html += '<div class="sheet-empty">' + esc(b.emptyMsg) + '</div>';
+    }
+    html += '</div></div>';
+    return html;
+  }
+
+  function hotdogSheetBlock(c, info, brk){
+    var wj = juiceTotal(info);
+    var flavours = [];
+    if(wj) flavours.push({name:'With juice box', count:wj, color:'var(--green)'});
+    if(info.plain) flavours.push({name:'Plain (no juice)', count:info.plain, color:'var(--ink-faint)'});
+    return {kind:'sheet', className:c, classMeta: yearLabel(c) + ' · ' + info.orders + ' orders',
+      heroValue: info.hotdogs, heroLabel:'HOT DOGS TO PACK', heroAccent:'red',
+      flavours: flavours, emptyMsg: flavours.length ? null : 'No hot dogs ordered', brk:brk};
+  }
+
+  function juiceSheetBlock(c, info, brk){
+    var total = juiceTotal(info);
+    var colors = {apple:'var(--gold)', ab:'var(--blue)', trop:'var(--green)'};
+    var flavours = [];
+    ["apple","ab","trop"].forEach(function(fk){
+      var n = info.combos[fk];
+      if(n) flavours.push({name:FLAVOUR_LABEL[fk], count:n, color:colors[fk]});
+    });
+    flavours.sort(function(a,b){ return b.count-a.count; });
+    return {kind:'sheet', className:c, classMeta: yearLabel(c) + ' · ' + info.orders + ' orders',
+      heroValue: total, heroLabel:'JUICE BOXES TO PACK', heroAccent:'green',
+      flavours: flavours, emptyMsg: flavours.length ? null : 'No juice ordered', brk:brk};
+  }
+
+  function printReport(title, blocks){
+    var html = blocks.map(function(b){ return b.kind === 'sheet' ? renderSheetBlock(title, b) : renderBlock(title, b); }).join('');
+    document.getElementById('reportModalTitle').textContent = title;
+    document.getElementById('reportModalBody').innerHTML = html;
+    document.getElementById('reportModal').hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeReportModal(){
+    document.getElementById('reportModal').hidden = true;
+    document.body.style.overflow = '';
+    document.body.classList.remove('print-scoped');
+  }
+
+  function attemptPrint(){
+    document.body.classList.add('print-scoped');
+    try{ window.print(); }
+    catch(e){ showToast("Couldn't open the print dialog here — open this page in its own tab, then press Ctrl/Cmd+P."); }
+    setTimeout(function(){ document.body.classList.remove('print-scoped'); }, 400);
+  }
+  window.addEventListener('afterprint', function(){ document.body.classList.remove('print-scoped'); });
+
+  document.getElementById('reportPrintBtn').addEventListener('click', attemptPrint);
+  document.getElementById('reportCloseBtn').addEventListener('click', closeReportModal);
+  document.getElementById('reportModal').addEventListener('click', function(e){
+    if(e.target === e.currentTarget) closeReportModal();
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && !document.getElementById('reportModal').hidden) closeReportModal();
+  });
+
+  function classListOrdered(d){
+    return FULL_ORDER.filter(function(c){ return d.byClass[c] && d.byClass[c].orders>0; });
+  }
+  function yearListOrdered(d){
+    return YEAR_ORDER.filter(function(y){ return d.byYear[y] && d.byYear[y].orders>0; });
+  }
+  function scopeForClass(c){ return yearLabel(c) + ' — ' + c; }
+
+  // ---- row builders ----
+  function juiceItemRows(info){
+    var rows = [];
+    ["apple","ab","trop"].forEach(function(fk){ var n = info.combos[fk]; if(n) rows.push([FLAVOUR_LABEL[fk], n]); });
+    rows.sort(function(a,b){ return b[1]-a[1]; });
+    return rows;
+  }
+  function hotdogItemRows(info){
+    var rows = [];
+    var wj = juiceTotal(info);
+    if(wj) rows.push(["Hot dog + juice", wj]);
+    if(info.plain) rows.push(["Hot dog only", info.plain]);
+    rows.sort(function(a,b){ return b[1]-a[1]; });
+    return rows;
+  }
+  function comboItemRows(info){
+    var rows = [];
+    ["ab","apple","trop"].forEach(function(fk){ if(info.combos[fk]) rows.push(["Hot dog + " + FLAVOUR_LABEL[fk], info.combos[fk]]); });
+    if(info.plain) rows.push(["Hot dog only", info.plain]);
+    rows.sort(function(a,b){ return b[1]-a[1]; });
+    return rows;
+  }
+  function breakdownText(rows){
+    return rows.length ? rows.map(function(r){ return r[1] + ' × ' + r[0]; }).join('\n') : '—';
+  }
+
+  // ---- block builders ----
+  function juiceBlock(scope, info, brk){
+    var rows = juiceItemRows(info);
+    return {scope:scope, accent:'green',
+      stats:[['Orders', info.orders], ['Total boxes', juiceTotal(info)], ['Flavours', rows.length]],
+      tableHead:['Flavour','Count'], colAlign:['left','right'],
+      tableRows: rows.length ? rows : [['No juice ordered', '']],
+      totalRow:['TOTAL', juiceTotal(info)], brk:brk};
+  }
+  function hotdogBlock(scope, info, brk){
+    var rows = hotdogItemRows(info);
+    return {scope:scope, accent:'red',
+      stats:[['Orders', info.orders], ['Hot dogs to pack', info.hotdogs], ['Items', rows.length]],
+      tableHead:['Item','Count'], colAlign:['left','right'],
+      tableRows: rows, totalRow:['TOTAL', info.hotdogs], brk:brk};
+  }
+  function slipBlock(scope, info, brk){
+    var rows = comboItemRows(info);
+    return {scope:scope, accent:'navy',
+      stats:[['Orders', info.orders], ['Hot dogs', info.hotdogs], ['Juice boxes', juiceTotal(info)]],
+      tableHead:['Item','Count'], colAlign:['left','right'],
+      tableRows: rows, totalRow:['TOTAL', info.hotdogs], brk:brk};
+  }
+  function flavourSummaryRow(label, info){
+    return [label, info.hotdogs, breakdownText(hotdogItemRows(info)), juiceTotal(info), breakdownText(juiceItemRows(info))];
+  }
+  var SUMMARY_HEAD = ["Class","Hot dogs","Hot dog breakdown","Juice","Juice flavours"];
+  var SUMMARY_HEAD_YEAR = ["Year level","Hot dogs","Hot dog breakdown","Juice","Juice flavours"];
+  var SUMMARY_ALIGN = ['left','right','left','right','left'];
+
+  // ---- individual export actions ----
+  var actions = {};
+
+  actions.classFlavourSummary = function(){
+    var d = currentData;
+    var rows = classListOrdered(d).map(function(c){ return flavourSummaryRow(c, d.byClass[c]); });
+    printReport('Class flavour summary', [{scope:'All classes', accent:'navy',
+      tableHead:SUMMARY_HEAD, colAlign:SUMMARY_ALIGN, tableRows:rows}]);
+  };
+
+  actions.classFlavourSummaryPerClass = function(){
+    var d = currentData;
+    var list = classListOrdered(d);
+    var blocks = list.map(function(c, i){
+      var info = d.byClass[c];
+      return {scope: scopeForClass(c), accent:'navy', brk: i < list.length-1,
+        stats:[['Orders', info.orders], ['Hot dogs', info.hotdogs], ['Juice boxes', juiceTotal(info)]],
+        tableHead:SUMMARY_HEAD, colAlign:SUMMARY_ALIGN, tableRows:[flavourSummaryRow(c, info)]};
+    });
+    printReport('Class flavour summary', blocks);
+  };
+
+  actions.orderingSheet = function(){
+    var d = currentData;
+    printReport('Ordering sheet', [{scope:'Shopping totals', accent:'navy',
+      stats:[['Orders', d.totalOrders], ['Hot dogs', d.totalHotdogs], ['Juice boxes', d.totalJuiceHotdogs]],
+      tableHead:['Item','Quantity'], colAlign:['left','right'], tableRows:[
+        ["Hot dogs / sausages", d.totalHotdogs],
+        ["Apple juice boxes", d.flavourTotals.apple||0],
+        ["Apple & Blackcurrant juice boxes", d.flavourTotals.ab||0],
+        ["Tropical juice boxes", d.flavourTotals.trop||0]
+      ], totalRow:['Juice boxes, total', d.totalJuiceHotdogs]}]);
+  };
+
+  actions.summaryPdf = function(){
+    var d = currentData;
+    printReport('Summary', [{scope:'Session summary', accent:'navy',
+      stats:[['Orders', d.totalOrders], ['Hot dogs', d.totalHotdogs], ['Juice boxes', d.totalJuiceHotdogs]],
+      tableHead:['Item','Count'], colAlign:['left','right'], tableRows:[
+        ["Hot dog + juice", d.totalJuiceHotdogs],
+        ["Hot dog only", d.totalPlainHotdogs],
+        ["Apple juice", d.flavourTotals.apple||0],
+        ["Apple & Blackcurrant juice", d.flavourTotals.ab||0],
+        ["Tropical juice", d.flavourTotals.trop||0]
+      ]}]);
+  };
+
+  actions.hotdogPackingByClass = function(){
+    var d = currentData;
+    var list = classListOrdered(d);
+    var blocks = list.map(function(c, i){ return hotdogSheetBlock(c, d.byClass[c], i < list.length-1); });
+    printReport('Hot dog packing sheet', blocks);
+  };
+
+  actions.juicePackingByClass = function(){
+    var d = currentData;
+    var list = classListOrdered(d);
+    var blocks = list.map(function(c, i){ return juiceSheetBlock(c, d.byClass[c], i < list.length-1); });
+    printReport('Juice packing sheet', blocks);
+  };
+
+  actions.juicePerClass = function(){
+    var d = currentData;
+    var list = classListOrdered(d);
+    var blocks = list.map(function(c, i){ return juiceBlock(scopeForClass(c), d.byClass[c], i < list.length-1); });
+    printReport('Juice itemised breakdown', blocks);
+  };
+
+  actions.juicePerYear = function(){
+    var d = currentData;
+    var list = yearListOrdered(d);
+    var blocks = list.map(function(y, i){ return juiceBlock(y, d.byYear[y], i < list.length-1); });
+    printReport('Juice itemised breakdown', blocks);
+  };
+
+  actions.hotdogPerClass = function(){
+    var d = currentData;
+    var list = classListOrdered(d);
+    var blocks = list.map(function(c, i){ return hotdogBlock(scopeForClass(c), d.byClass[c], i < list.length-1); });
+    printReport('Hot dog itemised breakdown', blocks);
+  };
+
+  actions.hotdogPerYear = function(){
+    var d = currentData;
+    var list = yearListOrdered(d);
+    var blocks = list.map(function(y, i){ return hotdogBlock(y, d.byYear[y], i < list.length-1); });
+    printReport('Hot dog itemised breakdown', blocks);
+  };
+
+  actions.yearBreakdown = function(){
+    var d = currentData;
+    var rows = yearListOrdered(d).map(function(y){ return flavourSummaryRow(y, d.byYear[y]); });
+    printReport('Year breakdown', [{scope:'All year levels', accent:'navy',
+      tableHead:SUMMARY_HEAD_YEAR, colAlign:SUMMARY_ALIGN, tableRows:rows}]);
+  };
+
+  actions.pickingList = function(){
+    var d = currentData;
+    var rows = classListOrdered(d).map(function(c){
+      var info = d.byClass[c];
+      return [c, info.hotdogs, info.combos.apple||0, info.combos.ab||0, info.combos.trop||0, juiceTotal(info)];
+    });
+    printReport('Picking / packing list', [{scope:'All classes', accent:'navy',
+      tableHead:["Class","Hot dogs","Apple","Apple & Blackcurrant","Tropical","Total juice"], tableRows:rows}]);
+  };
+
+  actions.slipsByClass = function(){
+    var d = currentData;
+    var list = classListOrdered(d);
+    var blocks = list.map(function(c, i){ return slipBlock(scopeForClass(c), d.byClass[c], i < list.length-1); });
+    printReport('Packing slips', blocks);
+  };
+
+  actions.slipsByYear = function(){
+    var d = currentData;
+    var list = yearListOrdered(d);
+    var blocks = list.map(function(y, i){ return slipBlock(y, d.byYear[y], i < list.length-1); });
+    printReport('Packing slips', blocks);
+  };
+
+  actions.csv = function(){
+    var d = currentData;
+    var lines = ["Class,Hot dogs,Apple,Apple & Blackcurrant,Tropical,Total juice"];
+    classListOrdered(d).forEach(function(c){
+      var info = d.byClass[c];
+      lines.push([c, info.hotdogs, info.combos.apple||0, info.combos.ab||0, info.combos.trop||0, juiceTotal(info)].join(","));
+    });
+    var text = lines.join("\n");
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ showToast("Copied CSV to clipboard"); })
+        .catch(function(){ showToast("Couldn't copy — select and copy manually"); });
+    } else {
+      showToast("Clipboard not available in this browser");
+    }
+  };
+
+  actions.targetYear = function(){
+    var d = currentData;
+    var y = document.getElementById('targetYearSelect').value;
+    if(!y || !d.byYear[y]) return;
+    printReport('Packing slip', [slipBlock(y, d.byYear[y], false)]);
+  };
+
+  actions.targetClass = function(){
+    var d = currentData;
+    var c = document.getElementById('targetClassSelect').value;
+    if(!c || !d.byClass[c]) return;
+    printReport('Packing slip', [slipBlock(scopeForClass(c), d.byClass[c], false)]);
+  };
+
+  function showToast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(showToast._h);
+    showToast._h = setTimeout(function(){ t.classList.remove('show'); }, 2200);
+  }
+
+  function svgIcon(){
+    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>';
+  }
+
+  var RECOMMENDED = [
+    ["🌭 Hot dog packing sheet — big print, one page per class", "hotdogPackingByClass"],
+    ["🧃 Juice packing sheet — big print, one page per class", "juicePackingByClass"],
+    ["Class flavour summary PDF", "classFlavourSummary"],
+    ["Class flavour summary — one page per class", "classFlavourSummaryPerClass"],
+    ["Ordering sheet PDF", "orderingSheet"]
+  ];
+  var ALL_EXPORTS = [
+    ["Copy CSV data", "csv"],
+    ["Summary PDF", "summaryPdf"],
+    ["Year breakdown PDF", "yearBreakdown"],
+    ["Class flavour summary PDF", "classFlavourSummary"],
+    ["Picking / packing list PDF", "pickingList"],
+    ["Packing slips — by class", "slipsByClass"],
+    ["Packing slips — by year level", "slipsByYear"],
+    ["Juice itemised — one page per class", "juicePerClass"],
+    ["Juice itemised — one page per year", "juicePerYear"],
+    ["Hot dog itemised — one page per class", "hotdogPerClass"],
+    ["Hot dog itemised — one page per year", "hotdogPerYear"]
+  ];
+
+  function itemHtml(label, action, gold){
+    return '<button type="button" class="exp-item' + (gold?' gold':'') + '" data-action="' + action + '"><span>' + esc(label) + '</span>' + svgIcon() + '</button>';
+  }
+
+  document.getElementById('recommendedList').innerHTML = RECOMMENDED.map(function(r){ return itemHtml(r[0], r[1], true); }).join('');
+  document.getElementById('allExportsPanel').innerHTML = ALL_EXPORTS.map(function(r){ return itemHtml(r[0], r[1], false); }).join('');
+  document.getElementById('reportCount').textContent = (RECOMMENDED.length + ALL_EXPORTS.length);
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.exp-item');
+    if(!btn) return;
+    var fn = actions[btn.getAttribute('data-action')];
+    if(fn) fn();
+  });
+
+  document.getElementById('allExportsToggle').addEventListener('click', function(){
+    var panel = document.getElementById('allExportsPanel');
+    var open = !panel.hidden;
+    panel.hidden = open;
+    this.classList.toggle('open', !open);
+  });
+  document.getElementById('targetedToggle').addEventListener('click', function(){
+    var panel = document.getElementById('targetedPanel');
+    var open = !panel.hidden;
+    panel.hidden = open;
+    this.classList.toggle('open', !open);
+  });
+  document.getElementById('targetYearGo').addEventListener('click', actions.targetYear);
+  document.getElementById('targetClassGo').addEventListener('click', actions.targetClass);
+  document.getElementById('copyCsvBtn').addEventListener('click', actions.csv);
+
+  // ---- simple CSV parser (handles quoted fields) ----
+  function parseCSV(text){
+    var rows = [], row = [], field = "", inQuotes = false;
+    for(var i=0; i<text.length; i++){
+      var c = text[i], next = text[i+1];
+      if(inQuotes){
+        if(c === '"' && next === '"'){ field += '"'; i++; }
+        else if(c === '"'){ inQuotes = false; }
+        else { field += c; }
+      } else {
+        if(c === '"'){ inQuotes = true; }
+        else if(c === ','){ row.push(field); field = ""; }
+        else if(c === '\n'){ row.push(field); field=""; rows.push(row); row=[]; }
+        else if(c === '\r'){ /* skip */ }
+        else { field += c; }
+      }
+    }
+    if(field.length || row.length){ row.push(field); rows.push(row); }
+    return rows.filter(function(r){ return r.length && r.some(function(v){ return v && v.trim(); }); });
+  }
+
+  function handleFile(file){
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      var raw = parseCSV(ev.target.result);
+      if(raw.length) raw.shift();
+      render(raw, file.name);
+    };
+    reader.readAsText(file);
+  }
+  document.getElementById('csvInput').addEventListener('change', function(e){ handleFile(e.target.files[0]); });
+  document.getElementById('csvInput2').addEventListener('change', function(e){ handleFile(e.target.files[0]); });
+
+  var dateInput = document.getElementById('sessionDate');
+  if(dateInput && !dateInput.value){
+    var now = new Date();
+    var iso = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+    dateInput.value = iso;
+  }
+
+  render(DEFAULT_DATA, DEFAULT_LABEL);
+})();
+</script>
