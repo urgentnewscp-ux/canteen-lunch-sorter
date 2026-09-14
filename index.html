@@ -663,11 +663,11 @@
       // keep canonical order within group
       var ordered = (y === "Kindergarten" ? KINDER_ORDER : CLASS_ORDER).filter(function(c){ return members.indexOf(c) !== -1; });
       html += '<div class="year-group"><div class="year-head"><h3>' + y + '</h3><span class="sub">' +
-        yi.orders + ' orders &middot; ' + yi.hotdogs + ' hot dogs &middot; ' + juiceTotal(yi) + ' juice</span></div>' +
-        '<div class="table-scroll"><table class="data"><thead><tr><th>Class</th><th class="num">Orders</th><th class="num">Hot dogs</th><th class="num">Juice</th></tr></thead><tbody>';
+        yi.orders + ' orders &middot; ' + yi.hotdogs + ' hot dogs (' + yi.hotdogsRegular + ' regular, ' + yi.hotdogsVeg + ' veg) &middot; ' + juiceTotal(yi) + ' juice</span></div>' +
+        '<div class="table-scroll"><table class="data"><thead><tr><th>Class</th><th class="num">Orders</th><th class="num">Hot dogs</th><th class="num">Regular</th><th class="num">Vegetarian</th><th class="num">Juice</th></tr></thead><tbody>';
       ordered.forEach(function(c){
         var ci = d.byClass[c];
-        html += '<tr><td>' + esc(c) + '</td><td class="num">' + ci.orders + '</td><td class="num">' + ci.hotdogs + '</td><td class="num">' + juiceTotal(ci) + '</td></tr>';
+        html += '<tr><td>' + esc(c) + '</td><td class="num">' + ci.orders + '</td><td class="num">' + ci.hotdogs + '</td><td class="num">' + ci.hotdogsRegular + '</td><td class="num">' + ci.hotdogsVeg + '</td><td class="num">' + juiceTotal(ci) + '</td></tr>';
       });
       html += '</tbody></table></div></div>';
     });
