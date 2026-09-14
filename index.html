@@ -83,6 +83,7 @@
 
   /* ---------- top bar ---------- */
   .topbar{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:22px;}
+  .topbar-actions{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
   .brand{display:flex; align-items:center; gap:10px;}
   .brand .mark{
     width:30px; height:30px; border-radius:8px; background:var(--ink); color:var(--paper);
@@ -361,11 +362,17 @@
       <div class="mark">FD</div>
       <h1>Footy Day Canteen</h1>
     </div>
-    <label class="file-btn">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-      Import CSV
-      <input type="file" id="csvInput" accept=".csv,text/csv" />
-    </label>
+    <div class="topbar-actions">
+      <button type="button" class="btn ghost" id="daySettingsBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v3M16 2v3M3.5 8h17M4 4.5h16a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1Z"/></svg>
+        Lunch days
+      </button>
+      <label class="file-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        Import CSV
+        <input type="file" id="csvInput" accept=".csv,text/csv" />
+      </label>
+    </div>
   </div>
 
   <div class="grid">
@@ -417,6 +424,14 @@
         <div id="yearGroups"></div>
       </div>
 
+      <div class="card" style="margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; gap:10px; flex-wrap:wrap;">
+          <h2 style="font-size:16px; font-family:'Inter',sans-serif;">By day</h2>
+          <button type="button" class="btn ghost" id="daySettingsBtn2" style="padding:6px 12px; font-size:12px;">Edit lunch days</button>
+        </div>
+        <div id="dayGroups"></div>
+      </div>
+
       <div class="flavour-tables">
         <div class="card flavour-card">
           <div class="head-row"><h3>Hot dogs</h3><span class="sub mono" id="hotdogSub"></span></div>
@@ -461,6 +476,13 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
           </button>
         </div>
+        <div class="targeted-row">
+          <label>Day</label>
+          <select id="targetDaySelect"></select>
+          <button class="icon-btn" id="targetDayGo" title="Print hot dog + juice packing sheets for this day's classes">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -471,16 +493,31 @@
     <div class="modal-head">
       <h2 id="reportModalTitle">Report</h2>
       <div class="modal-actions">
+        <button class="btn ghost" id="reportDownloadBtn">Download PDF</button>
         <button class="btn" id="reportPrintBtn">Print / Save PDF</button>
         <button class="modal-close" id="reportCloseBtn" aria-label="Close">&times;</button>
       </div>
     </div>
-    <div class="modal-hint">This report is generated on the page below. Use <b>Print / Save PDF</b> to print it or save it as a PDF. If the print dialog doesn't open, open this page in its own browser tab first, then press Ctrl/Cmd+P.</div>
+    <div class="modal-hint">Use <b>Download PDF</b> to save this report straight to your device as a file, or <b>Print / Save PDF</b> to send it to a printer. If a button doesn't respond, open this page in its own browser tab first and try again.</div>
     <div class="modal-body" id="reportModalBody"></div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="dayModal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>Lunch day settings</h2>
+      <div class="modal-actions">
+        <button class="modal-close" id="dayModalCloseBtn" aria-label="Close">&times;</button>
+      </div>
+    </div>
+    <div class="modal-hint">Assign which day each class or level has their lunch on. Add extra days here if a future event needs more than two sittings &mdash; changes are saved on this device and apply to every session.</div>
+    <div class="modal-body" id="dayModalBody"></div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
 (function(){
 
@@ -662,9 +699,12 @@
     return '<div class="tile ' + (cls||'') + '"><div class="tl">' + label + '</div><div class="tv mono">' + value + '</div></div>';
   }
 
+  var lastRows = null, lastLabel = null;
   function render(rows, label){
+    lastRows = rows; lastLabel = label;
     var d = parseRows(rows);
     d.byYear = aggregateByYear(d.byClass);
+    d.byDay = aggregateByDay(d.byClass);
     currentData = d;
     document.getElementById('sourceLabel').value = label;
 
@@ -702,14 +742,33 @@
       var ordered = (y === "Kindergarten" ? KINDER_ORDER : CLASS_ORDER).filter(function(c){ return members.indexOf(c) !== -1; });
       html += '<div class="year-group"><div class="year-head"><h3>' + y + '</h3><span class="sub">' +
         yi.orders + ' orders &middot; ' + yi.hotdogsRegular + ' hot dogs &middot; ' + yi.hotdogsVeg + ' vegetarian &middot; ' + juiceTotal(yi) + ' juice</span></div>' +
-        '<div class="table-scroll"><table class="data"><thead><tr><th>Class</th><th class="num">Orders</th><th class="num">Hot dogs</th><th class="num">Vegetarian</th><th class="num">Juice</th></tr></thead><tbody>';
+        '<div class="table-scroll"><table class="data"><thead><tr><th>Class</th><th class="num">Orders</th><th class="num">Hot dogs</th><th class="num">Vegetarian</th><th class="num">Juice</th><th>Day</th></tr></thead><tbody>';
       ordered.forEach(function(c){
         var ci = d.byClass[c];
-        html += '<tr><td>' + esc(c) + '</td><td class="num">' + ci.orders + '</td><td class="num">' + ci.hotdogsRegular + '</td><td class="num">' + ci.hotdogsVeg + '</td><td class="num">' + juiceTotal(ci) + '</td></tr>';
+        html += '<tr><td>' + esc(c) + '</td><td class="num">' + ci.orders + '</td><td class="num">' + ci.hotdogsRegular + '</td><td class="num">' + ci.hotdogsVeg + '</td><td class="num">' + juiceTotal(ci) + '</td><td>' + esc(dayForClass(c)) + '</td></tr>';
       });
       html += '</tbody></table></div></div>';
     });
     document.getElementById('yearGroups').innerHTML = html;
+
+    // by-day grouped tables (which classes eat on which day)
+    var dayHtml = "";
+    dayDays.forEach(function(day){
+      var di = d.byDay[day];
+      if(!di || di.orders === 0) return;
+      var members = di.members.slice();
+      var orderedDay = FULL_ORDER.filter(function(c){ return members.indexOf(c) !== -1; })
+        .concat(members.filter(function(c){ return FULL_ORDER.indexOf(c) === -1; }));
+      dayHtml += '<div class="year-group"><div class="year-head"><h3>' + esc(day) + '</h3><span class="sub">' +
+        di.orders + ' orders &middot; ' + di.hotdogsRegular + ' hot dogs &middot; ' + di.hotdogsVeg + ' vegetarian &middot; ' + juiceTotal(di) + ' juice</span></div>' +
+        '<div class="table-scroll"><table class="data"><thead><tr><th>Class</th><th class="num">Orders</th><th class="num">Hot dogs</th><th class="num">Vegetarian</th><th class="num">Juice</th></tr></thead><tbody>';
+      orderedDay.forEach(function(c){
+        var ci = d.byClass[c];
+        dayHtml += '<tr><td>' + esc(c) + '</td><td class="num">' + ci.orders + '</td><td class="num">' + ci.hotdogsRegular + '</td><td class="num">' + ci.hotdogsVeg + '</td><td class="num">' + juiceTotal(ci) + '</td></tr>';
+      });
+      dayHtml += '</tbody></table></div></div>';
+    });
+    document.getElementById('dayGroups').innerHTML = dayHtml || '<div class="sheet-empty">No days configured with orders.</div>';
 
     // hot dog / vegetarian / juice flavour summary tables
     document.getElementById('hotdogSub').textContent = d.totalHotdogsRegular + ' total';
@@ -738,6 +797,9 @@
     ySel.innerHTML = years.map(function(y){ return '<option value="'+esc(y)+'">'+esc(y)+'</option>'; }).join('');
     var cSel = document.getElementById('targetClassSelect');
     cSel.innerHTML = classesWithOrders.map(function(c){ return '<option value="'+esc(c)+'">'+esc(c)+'</option>'; }).join('');
+    var dSel = document.getElementById('targetDaySelect');
+    var daysWithOrders = dayDays.filter(function(day){ return d.byDay[day] && d.byDay[day].orders>0; });
+    dSel.innerHTML = daysWithOrders.map(function(day){ return '<option value="'+esc(day)+'">'+esc(day)+'</option>'; }).join('');
   }
 
   // ---------------- print report builder ----------------
@@ -832,7 +894,7 @@
     if(wj) subParts.push(wj + ' with juice');
     if(info.plain) subParts.push(info.plain + ' plain (no juice)');
     var sub = subParts.length ? subParts.join(' \u00b7 ') : null;
-    return {kind:'sheet', className:c, classMeta: yearLabel(c) + ' \u00b7 ' + info.orders + ' orders',
+    return {kind:'sheet', className:c, classMeta: yearLabel(c) + ' \u00b7 ' + dayForClass(c) + ' \u00b7 ' + info.orders + ' orders',
       heroValue: info.hotdogs, heroLabel:'HOT DOGS TO PACK', heroAccent:'red',
       flavours: flavours, sub: sub, emptyMsg: flavours.length ? null : 'No hot dogs ordered', brk:brk};
   }
@@ -846,7 +908,7 @@
       if(n) flavours.push({name:FLAVOUR_LABEL[fk], count:n, color:colors[fk]});
     });
     flavours.sort(function(a,b){ return b.count-a.count; });
-    return {kind:'sheet', className:c, classMeta: yearLabel(c) + ' \u00b7 ' + info.orders + ' orders',
+    return {kind:'sheet', className:c, classMeta: yearLabel(c) + ' \u00b7 ' + dayForClass(c) + ' \u00b7 ' + info.orders + ' orders',
       heroValue: total, heroLabel:'JUICE BOXES TO PACK', heroAccent:'green',
       flavours: flavours, emptyMsg: flavours.length ? null : 'No juice ordered', brk:brk};
   }
@@ -873,6 +935,41 @@
   }
   window.addEventListener('afterprint', function(){ document.body.classList.remove('print-scoped'); });
 
+  function slugify(s){
+    return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'report';
+  }
+
+  function downloadPdf(){
+    var btn = document.getElementById('reportDownloadBtn');
+    if(typeof html2pdf === 'undefined'){
+      showToast("PDF download isn't available right now \u2014 use Print / Save PDF instead.");
+      return;
+    }
+    var el = document.getElementById('reportModalBody');
+    var title = document.getElementById('reportModalTitle').textContent || 'report';
+    var filename = slugify(sessionTitle() + '-' + title) + '.pdf';
+    var origText = btn.textContent;
+    btn.textContent = 'Preparing\u2026';
+    btn.disabled = true;
+    var opt = {
+      margin: 0,
+      filename: filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['css', 'legacy'] }
+    };
+    html2pdf().set(opt).from(el).save().then(function(){
+      btn.textContent = origText;
+      btn.disabled = false;
+    }).catch(function(){
+      btn.textContent = origText;
+      btn.disabled = false;
+      showToast("Couldn't generate the PDF \u2014 try Print / Save PDF instead.");
+    });
+  }
+
+  document.getElementById('reportDownloadBtn').addEventListener('click', downloadPdf);
   document.getElementById('reportPrintBtn').addEventListener('click', attemptPrint);
   document.getElementById('reportCloseBtn').addEventListener('click', closeReportModal);
   document.getElementById('reportModal').addEventListener('click', function(e){
@@ -882,13 +979,99 @@
     if(e.key === 'Escape' && !document.getElementById('reportModal').hidden) closeReportModal();
   });
 
+  // ---------------- lunch day settings modal ----------------
+  function openDayModal(){
+    renderDayModal();
+    document.getElementById('dayModal').hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+  function closeDayModal(){
+    document.getElementById('dayModal').hidden = true;
+    document.body.style.overflow = '';
+  }
+  function renderDayModal(){
+    var body = document.getElementById('dayModalBody');
+    var html = '';
+
+    html += '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:16px;">' +
+      '<input type="text" id="newDayInput" class="field-input" placeholder="Add another day (e.g. Wednesday)" style="max-width:220px;">' +
+      '<button type="button" class="btn ghost" id="addDayBtn" style="padding:8px 14px;">Add day</button>' +
+      '</div>';
+
+    html += '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:16px;">' +
+      '<label style="font-size:13px; font-weight:600; color:var(--ink-soft);">Set whole year level</label>' +
+      '<select id="bulkYearSelect">' + YEAR_ORDER.map(function(y){ return '<option value="'+esc(y)+'">'+esc(y)+'</option>'; }).join('') + '</select>' +
+      '<label style="font-size:13px; font-weight:600; color:var(--ink-soft);">to</label>' +
+      '<select id="bulkDaySelect">' + dayDays.map(function(day){ return '<option value="'+esc(day)+'">'+esc(day)+'</option>'; }).join('') + '</select>' +
+      '<button type="button" class="btn ghost" id="bulkApplyBtn" style="padding:8px 14px;">Apply</button>' +
+      '</div>';
+
+    html += '<div class="table-scroll"><table class="data"><thead><tr><th>Year level</th><th>Class</th><th>Day</th></tr></thead><tbody>';
+    YEAR_ORDER.forEach(function(y){
+      var members = (y === "Kindergarten" ? KINDER_ORDER : CLASS_ORDER.filter(function(c){ return yearLabel(c) === y; }));
+      members.forEach(function(c, i){
+        html += '<tr><td>' + (i===0 ? esc(y) : '') + '</td><td>' + esc(c) + '</td><td>' +
+          '<select class="day-class-select" data-class="' + esc(c) + '">' +
+          dayDays.map(function(day){ return '<option value="'+esc(day)+'"'+(dayForClass(c)===day?' selected':'')+'>'+esc(day)+'</option>'; }).join('') +
+          '</select></td></tr>';
+      });
+    });
+    html += '</tbody></table></div>';
+
+    body.innerHTML = html;
+  }
+
+  document.getElementById('daySettingsBtn').addEventListener('click', openDayModal);
+  document.getElementById('daySettingsBtn2').addEventListener('click', openDayModal);
+  document.getElementById('dayModalCloseBtn').addEventListener('click', closeDayModal);
+  document.getElementById('dayModal').addEventListener('click', function(e){
+    if(e.target === e.currentTarget) closeDayModal();
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && !document.getElementById('dayModal').hidden) closeDayModal();
+  });
+
+  document.getElementById('dayModalBody').addEventListener('change', function(e){
+    if(e.target.classList.contains('day-class-select')){
+      var cls = e.target.getAttribute('data-class');
+      dayAssignment[cls] = e.target.value;
+      saveDaySettings();
+      if(lastRows) render(lastRows, lastLabel);
+    }
+  });
+  document.getElementById('dayModalBody').addEventListener('click', function(e){
+    if(e.target.id === 'addDayBtn'){
+      var input = document.getElementById('newDayInput');
+      var val = (input.value||'').trim();
+      if(!val) return;
+      if(dayDays.indexOf(val) === -1){
+        dayDays.push(val);
+        saveDaySettings();
+        renderDayModal();
+        if(lastRows) render(lastRows, lastLabel);
+        showToast('Added ' + val);
+      } else {
+        showToast('That day already exists');
+      }
+    } else if(e.target.id === 'bulkApplyBtn'){
+      var y = document.getElementById('bulkYearSelect').value;
+      var day = document.getElementById('bulkDaySelect').value;
+      var members = (y === "Kindergarten" ? KINDER_ORDER : CLASS_ORDER.filter(function(c){ return yearLabel(c) === y; }));
+      members.forEach(function(c){ dayAssignment[c] = day; });
+      saveDaySettings();
+      renderDayModal();
+      if(lastRows) render(lastRows, lastLabel);
+      showToast(y + ' set to ' + day);
+    }
+  });
+
   function classListOrdered(d){
     return FULL_ORDER.filter(function(c){ return d.byClass[c] && d.byClass[c].orders>0; });
   }
   function yearListOrdered(d){
     return YEAR_ORDER.filter(function(y){ return d.byYear[y] && d.byYear[y].orders>0; });
   }
-  function scopeForClass(c){ return yearLabel(c) + ' \u2014 ' + c; }
+  function scopeForClass(c){ return yearLabel(c) + ' \u2014 ' + c + ' \u2014 ' + dayForClass(c); }
 
   // ---- row builders ----
   function juiceItemRows(info){
@@ -1112,6 +1295,17 @@
     printReport('Packing slip', [slipBlock(scopeForClass(c), d.byClass[c], false)]);
   };
 
+  actions.targetDay = function(){
+    var d = currentData;
+    var day = document.getElementById('targetDaySelect').value;
+    if(!day) return;
+    var list = classListOrdered(d).filter(function(c){ return dayForClass(c) === day; });
+    if(!list.length){ showToast('No classes with orders are assigned to ' + day); return; }
+    var hotdogBlocks = list.map(function(c, i){ return hotdogSheetBlock(c, d.byClass[c], true); });
+    var juiceBlocks = list.map(function(c, i){ return juiceSheetBlock(c, d.byClass[c], i < list.length-1); });
+    printReport('Packing sheets \u2014 ' + day, hotdogBlocks.concat(juiceBlocks));
+  };
+
   function showToast(msg){
     var t = document.getElementById('toast');
     t.textContent = msg;
@@ -1174,6 +1368,7 @@
   });
   document.getElementById('targetYearGo').addEventListener('click', actions.targetYear);
   document.getElementById('targetClassGo').addEventListener('click', actions.targetClass);
+  document.getElementById('targetDayGo').addEventListener('click', actions.targetDay);
   document.getElementById('copyCsvBtn').addEventListener('click', actions.csv);
 
   // ---- simple CSV parser (handles quoted fields) ----
