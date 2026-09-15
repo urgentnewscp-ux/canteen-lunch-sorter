@@ -733,6 +733,19 @@
     return "Other";
   }
 
+  function addInfoInto(gi, info, cls){
+    gi.orders += info.orders; gi.hotdogs += info.hotdogs; gi.plain += info.plain;
+    gi.hotdogsRegular += info.hotdogsRegular; gi.hotdogsVeg += info.hotdogsVeg;
+    gi.plainByType.regular += info.plainByType.regular; gi.plainByType.veg += info.plainByType.veg;
+    ["ab","apple","trop"].forEach(function(fk){ if(info.combos[fk]) gi.combos[fk] = (gi.combos[fk]||0) + info.combos[fk]; });
+    ["regular","veg"].forEach(function(tk){
+      ["ab","apple","trop"].forEach(function(fk){
+        var n = info.comboByType[tk][fk];
+        if(n) gi.comboByType[tk][fk] = (gi.comboByType[tk][fk]||0) + n;
+      });
+    });
+    if(cls) gi.members.push(cls);
+  }
   function aggregateByGroup(byClass, groupOrder, groupFn){
     var byGroup = {};
     groupOrder.forEach(function(g){ byGroup[g] = blankInfo(); });
@@ -741,23 +754,40 @@
       if(!info || info.orders === 0) return;
       var g = groupFn(cls);
       if(!byGroup[g]) byGroup[g] = blankInfo();
-      var gi = byGroup[g];
-      gi.orders += info.orders; gi.hotdogs += info.hotdogs; gi.plain += info.plain;
-      gi.hotdogsRegular += info.hotdogsRegular; gi.hotdogsVeg += info.hotdogsVeg;
-      gi.plainByType.regular += info.plainByType.regular; gi.plainByType.veg += info.plainByType.veg;
-      ["ab","apple","trop"].forEach(function(fk){ if(info.combos[fk]) gi.combos[fk] = (gi.combos[fk]||0) + info.combos[fk]; });
-      ["regular","veg"].forEach(function(tk){
-        ["ab","apple","trop"].forEach(function(fk){
-          var n = info.comboByType[tk][fk];
-          if(n) gi.comboByType[tk][fk] = (gi.comboByType[tk][fk]||0) + n;
-        });
-      });
-      gi.members.push(cls);
+      addInfoInto(byGroup[g], info, cls);
     });
     return byGroup;
   }
   function aggregateByYear(byClass){ return aggregateByGroup(byClass, YEAR_ORDER, yearLabel); }
   function aggregateByDay(byClass){ return aggregateByGroup(byClass, dayDays, dayForClass); }
+
+  // For "by year level" exports: a year level whose classes with orders fall on more than
+  // one lunch day can't be packed/cooked as a single sheet, so split it into one block per
+  // day that year actually has orders on. Years with a single day stay as one block.
+  function yearDayBlocks(d){
+    var out = [];
+    YEAR_ORDER.forEach(function(y){
+      var yi = d.byYear[y];
+      if(!yi || yi.orders === 0) return;
+      var daysPresent = {};
+      yi.members.forEach(function(c){
+        if(d.byClass[c] && d.byClass[c].orders > 0) daysPresent[dayForClass(c)] = true;
+      });
+      var dayKeys = Object.keys(daysPresent);
+      if(dayKeys.length <= 1){
+        out.push({label:y, info:yi, year:y, day:dayKeys[0] || null});
+        return;
+      }
+      dayDays.forEach(function(day){
+        var subClasses = yi.members.filter(function(c){ return dayForClass(c) === day && d.byClass[c] && d.byClass[c].orders > 0; });
+        if(!subClasses.length) return;
+        var sub = blankInfo();
+        subClasses.forEach(function(c){ addInfoInto(sub, d.byClass[c], c); });
+        out.push({label: y + ' ' + String.fromCharCode(8212) + ' ' + day, info:sub, year:y, day:day});
+      });
+    });
+    return out;
+  }
 
   function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]; }); }
 
@@ -1395,15 +1425,15 @@
 
   actions.hotdogPackingByYear = function(){
     var d = currentData;
-    var list = yearListOrdered(d);
-    var blocks = list.map(function(y, i){ return hotdogSheetBlockYear(y, d.byYear[y], i < list.length-1); });
+    var list = yearDayBlocks(d);
+    var blocks = list.map(function(g, i){ return hotdogSheetBlockYear(g.label, g.info, i < list.length-1); });
     printReport('Hot dog packing sheet \u2014 by year', blocks);
   };
 
   actions.juicePackingByYear = function(){
     var d = currentData;
-    var list = yearListOrdered(d);
-    var blocks = list.map(function(y, i){ return juiceSheetBlockYear(y, d.byYear[y], i < list.length-1); });
+    var list = yearDayBlocks(d);
+    var blocks = list.map(function(g, i){ return juiceSheetBlockYear(g.label, g.info, i < list.length-1); });
     printReport('Juice packing sheet \u2014 by year', blocks);
   };
 
@@ -1416,8 +1446,8 @@
 
   actions.juicePerYear = function(){
     var d = currentData;
-    var list = yearListOrdered(d);
-    var blocks = list.map(function(y, i){ return juiceBlock(y, d.byYear[y], i < list.length-1); });
+    var list = yearDayBlocks(d);
+    var blocks = list.map(function(g, i){ return juiceBlock(g.label, g.info, i < list.length-1); });
     printReport('Juice itemised breakdown', blocks);
   };
 
@@ -1430,15 +1460,21 @@
 
   actions.hotdogPerYear = function(){
     var d = currentData;
-    var list = yearListOrdered(d);
-    var blocks = list.map(function(y, i){ return hotdogBlock(y, d.byYear[y], i < list.length-1); });
+    var list = yearDayBlocks(d);
+    var blocks = list.map(function(g, i){ return hotdogBlock(g.label, g.info, i < list.length-1); });
     printReport('Hot dog itemised breakdown', blocks);
   };
 
   actions.yearBreakdown = function(){
     var d = currentData;
-    var rows = yearListOrdered(d).map(function(y){ return flavourSummaryRow(y, d.byYear[y]); });
-    printReport('Year breakdown', [{scope:'All year levels', accent:'navy',
+    var lastYear = null;
+    var rows = yearDayBlocks(d).map(function(g){
+      var row = flavourSummaryRow(g.label, g.info);
+      if(lastYear !== null && g.year !== lastYear) row.yearBreak = true;
+      lastYear = g.year;
+      return row;
+    });
+    printReport('Year breakdown', [{scope:'All year levels ' + String.fromCharCode(8212) + ' split by day where a year level spans more than one day', accent:'navy',
       tableHead:SUMMARY_HEAD_YEAR, colAlign:SUMMARY_ALIGN, tableRows:rows}]);
   };
 
@@ -1461,8 +1497,8 @@
 
   actions.slipsByYear = function(){
     var d = currentData;
-    var list = yearListOrdered(d);
-    var blocks = list.map(function(y, i){ return slipBlock(y, d.byYear[y], i < list.length-1); });
+    var list = yearDayBlocks(d);
+    var blocks = list.map(function(g, i){ return slipBlock(g.label, g.info, i < list.length-1); });
     printReport('Packing slips', blocks);
   };
 
@@ -1486,7 +1522,10 @@
     var d = currentData;
     var y = document.getElementById('targetYearSelect').value;
     if(!y || !d.byYear[y]) return;
-    printReport('Packing slip', [slipBlock(y, d.byYear[y], false)]);
+    var groups = yearDayBlocks(d).filter(function(g){ return g.year === y; });
+    if(!groups.length) return;
+    var blocks = groups.map(function(g, i){ return slipBlock(g.label, g.info, i < groups.length-1); });
+    printReport('Packing slip', blocks);
   };
 
   actions.targetClass = function(){
