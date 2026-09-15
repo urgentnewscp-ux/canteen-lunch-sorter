@@ -407,11 +407,10 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v3M16 2v3M3.5 8h17M4 4.5h16a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1Z"/></svg>
         Lunch days
       </button>
-      <label class="file-btn">
+      <button type="button" class="btn ghost" id="openUploadBtn">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
         Import CSV
-        <input type="file" id="csvInput" accept=".csv,text/csv" />
-      </label>
+      </button>
     </div>
   </div>
 
@@ -443,19 +442,6 @@
         <div class="status-row">
           <span class="live-dot">Loaded session</span>
           <div class="tile-row" id="topTiles"></div>
-        </div>
-      </div>
-
-      <div class="card upload-card" style="margin-bottom:16px;">
-        <h2>Upload data</h2>
-        <p>Import the CSV export from the school's online ordering system. Each row is one booking &mdash; the app reads the hot dog / juice text, the flavour, and the class, and totals them up.</p>
-        <div class="upload-actions">
-          <label class="btn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-            Import CSV
-            <input type="file" accept=".csv,text/csv" id="csvInput2" style="display:none" />
-          </label>
-          <button class="btn ghost" id="copyCsvBtn">Copy raw data as CSV</button>
         </div>
       </div>
 
@@ -556,6 +542,28 @@
     </div>
     <div class="modal-hint">Assign which day each class or level has their lunch on. Add extra days here if a future event needs more than two sittings &mdash; changes are saved on this device and apply to every session.</div>
     <div class="modal-body" id="dayModalBody"></div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="uploadModal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>Upload data</h2>
+      <div class="modal-actions">
+        <button class="modal-close" id="uploadModalCloseBtn" aria-label="Close">&times;</button>
+      </div>
+    </div>
+    <div class="modal-hint">Import the CSV export from the school's online ordering system. Each row is one booking &mdash; the app reads the hot dog / juice text, the flavour, and the class, and totals them up.</div>
+    <div class="modal-body">
+      <div class="upload-actions">
+        <label class="btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          Import CSV
+          <input type="file" accept=".csv,text/csv" id="csvInput" style="display:none" />
+        </label>
+        <button class="btn ghost" id="copyCsvBtn">Copy raw data as CSV</button>
+      </div>
+    </div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -1169,6 +1177,24 @@
       if(lastRows) render(lastRows, lastLabel);
     }
   });
+  // ---------------- upload data modal ----------------
+  function openUploadModal(){
+    document.getElementById('uploadModal').hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+  function closeUploadModal(){
+    document.getElementById('uploadModal').hidden = true;
+    document.body.style.overflow = '';
+  }
+  document.getElementById('openUploadBtn').addEventListener('click', openUploadModal);
+  document.getElementById('uploadModalCloseBtn').addEventListener('click', closeUploadModal);
+  document.getElementById('uploadModal').addEventListener('click', function(e){
+    if(e.target === e.currentTarget) closeUploadModal();
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && !document.getElementById('uploadModal').hidden) closeUploadModal();
+  });
+
   document.getElementById('dayModalBody').addEventListener('click', function(e){
     if(e.target.id === 'addDayBtn'){
       var input = document.getElementById('newDayInput');
@@ -1642,11 +1668,11 @@
       var raw = parseCSV(ev.target.result);
       if(raw.length) raw.shift();
       render(raw, file.name);
+      closeUploadModal();
     };
     reader.readAsText(file);
   }
   document.getElementById('csvInput').addEventListener('change', function(e){ handleFile(e.target.files[0]); });
-  document.getElementById('csvInput2').addEventListener('change', function(e){ handleFile(e.target.files[0]); });
 
   var dateInput = document.getElementById('sessionDate');
   if(dateInput && !dateInput.value){
