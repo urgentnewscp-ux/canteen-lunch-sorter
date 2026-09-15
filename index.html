@@ -1263,38 +1263,51 @@
       return;
     }
     var el = document.getElementById('reportModalBody');
+    var card = el.closest('.modal-card');
+    var backdrop = document.getElementById('reportModal');
     var title = document.getElementById('reportModalTitle').textContent || 'report';
     var filename = slugify(sessionTitle() + '-' + title) + '.pdf';
     var origText = btn.textContent;
     btn.textContent = 'Preparing\u2026';
     btn.disabled = true;
+
+    // The on-screen modal is height-capped with its own scrollbar (the body is
+    // max-height:70vh with overflow-y:auto, sitting inside a position:fixed
+    // backdrop) so only the currently-visible slice is on screen. html2canvas
+    // renders from the live layout, so left as-is it only captures that clipped
+    // slice. Lift the caps on the real elements right before capture (briefly,
+    // the modal is covered by the renderer anyway), then put them back
+    // afterwards so the on-screen scrolling behaviour is unaffected.
+    var prevBodyStyle = el.style.cssText;
+    var prevCardStyle = card ? card.style.cssText : '';
+    var prevBackdropStyle = backdrop.style.cssText;
+    el.style.maxHeight = 'none';
+    el.style.overflow = 'visible';
+    if(card){ card.style.maxHeight = 'none'; card.style.overflow = 'visible'; }
+    backdrop.style.position = 'static';
+    backdrop.style.overflow = 'visible';
+    backdrop.style.height = 'auto';
+
+    function restore(){
+      el.style.cssText = prevBodyStyle;
+      if(card) card.style.cssText = prevCardStyle;
+      backdrop.style.cssText = prevBackdropStyle;
+    }
+
     var opt = {
       margin: 0,
       filename: filename,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2, useCORS: true,
-        onclone: function(clonedDoc){
-          // The on-screen modal body is height-capped with its own scrollbar
-          // (max-height:70vh; overflow-y:auto) so only what's currently visible
-          // is on screen. Left as-is, html2canvas only captures that clipped
-          // slice. Lift the cap on the clone (used only for the PDF render,
-          // never touches the live page) so the full report is captured.
-          var body = clonedDoc.getElementById('reportModalBody');
-          if(body){ body.style.maxHeight = 'none'; body.style.overflow = 'visible'; body.style.height = 'auto'; }
-          var card = body ? body.closest('.modal-card') : null;
-          if(card){ card.style.maxHeight = 'none'; card.style.overflow = 'visible'; card.style.height = 'auto'; }
-          var backdrop = clonedDoc.getElementById('reportModal');
-          if(backdrop){ backdrop.style.position = 'static'; backdrop.style.overflow = 'visible'; backdrop.style.height = 'auto'; }
-        }
-      },
+      html2canvas: { scale: 2, useCORS: true },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak: { mode: ['css', 'legacy'] }
     };
     html2pdf().set(opt).from(el).save().then(function(){
+      restore();
       btn.textContent = origText;
       btn.disabled = false;
     }).catch(function(){
+      restore();
       btn.textContent = origText;
       btn.disabled = false;
       showToast("Couldn't generate the PDF \u2014 try Print / Save PDF instead.");
