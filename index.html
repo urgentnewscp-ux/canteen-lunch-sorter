@@ -695,13 +695,15 @@
 
       var fk = flavourKey(juice);
       comboMatches.forEach(function(n){
-        totalHotdogs += n; totalJuiceHotdogs += n;
+        // "Hotdog with Juice - N" means N hot dogs on this line, but only one juice box
+        // is bundled with the line regardless of N (juice doesn't scale with hot dog count).
+        totalHotdogs += n; totalJuiceHotdogs += 1;
         byClass[cls].hotdogs += n;
-        byClass[cls].combos[fk] = (byClass[cls].combos[fk]||0) + n;
-        byClass[cls].comboByType[tk][fk] = (byClass[cls].comboByType[tk][fk]||0) + n;
-        flavourTotals[fk] = (flavourTotals[fk]||0) + n;
-        if(tk === "veg"){ byClass[cls].hotdogsVeg += n; totalHotdogsVeg += n; totalJuiceVeg += n; }
-        else { byClass[cls].hotdogsRegular += n; totalHotdogsRegular += n; totalJuiceRegular += n; }
+        byClass[cls].combos[fk] = (byClass[cls].combos[fk]||0) + 1;
+        byClass[cls].comboByType[tk][fk] = (byClass[cls].comboByType[tk][fk]||0) + 1;
+        flavourTotals[fk] = (flavourTotals[fk]||0) + 1;
+        if(tk === "veg"){ byClass[cls].hotdogsVeg += n; totalHotdogsVeg += n; totalJuiceVeg += 1; }
+        else { byClass[cls].hotdogsRegular += n; totalHotdogsRegular += n; totalJuiceRegular += 1; }
       });
       plainMatches.forEach(function(n){
         totalHotdogs += n; totalPlainHotdogs += n;
