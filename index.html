@@ -1339,6 +1339,35 @@
     printReport('Summary', blocks);
   };
 
+  actions.cookingSheet = function(){
+    var d = currentData;
+    var days = daysWithOrders(d);
+    var blocks = [];
+    if(days.length){
+      days.forEach(function(day, i){
+        var info = d.byDay[day];
+        blocks.push({scope: day + ' \u2014 cooking sheet', accent:'red', brk: i < days.length - 1,
+          stats:[['Orders', info.orders], ['Hot dogs', info.hotdogs], ['Juice boxes', juiceTotal(info)]],
+          tableHead:['Item','Quantity'], colAlign:['left','right'],
+          tableRows: summaryRows(info.hotdogsRegular, info.hotdogsVeg, juiceTotal(info), info.plain, info.combos.apple||0, info.combos.ab||0, info.combos.trop||0),
+          totalRow:['Hot dogs, total', info.hotdogs]});
+      });
+      if(days.length > 1){
+        blocks.push({scope:'All days combined \u2014 cooking sheet', accent:'red',
+          stats:[['Orders', d.totalOrders], ['Hot dogs', d.totalHotdogs], ['Juice boxes', d.totalJuiceHotdogs]],
+          tableHead:['Item','Quantity'], colAlign:['left','right'],
+          tableRows: summaryRows(d.totalHotdogsRegular, d.totalHotdogsVeg, d.totalJuiceHotdogs, d.totalPlainHotdogs, d.flavourTotals.apple||0, d.flavourTotals.ab||0, d.flavourTotals.trop||0),
+          totalRow:['Hot dogs, total', d.totalHotdogs]});
+      }
+    } else {
+      blocks.push({scope:'Cooking sheet', accent:'red',
+        stats:[['Orders', 0], ['Hot dogs', 0], ['Juice boxes', 0]],
+        tableHead:['Item','Quantity'], colAlign:['left','right'],
+        tableRows: summaryRows(0,0,0,0,0,0,0), totalRow:['Hot dogs, total', 0]});
+    }
+    printReport('Cooking sheet', blocks);
+  };
+
   actions.hotdogPackingByClass = function(){
     var d = currentData;
     var list = classListOrdered(d);
@@ -1486,7 +1515,8 @@
     ["Juice packing sheet \u2014 big print, one page per year level", "juicePackingByYear"],
     ["Class flavour summary PDF", "classFlavourSummary"],
     ["Class flavour summary \u2014 one page per class", "classFlavourSummaryPerClass"],
-    ["Ordering sheet PDF", "orderingSheet"]
+    ["Ordering sheet PDF", "orderingSheet"],
+    ["Cooking sheet PDF \u2014 by day, with breakdowns", "cookingSheet"]
   ];
   var ALL_EXPORTS = [
     ["Copy CSV data", "csv"],
