@@ -1,4 +1,4 @@
-<title>Footy Day Lunch Sorter</title>
+<title>Canteen Assistant</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap');
 
@@ -385,8 +385,8 @@
 
 <div id="lockScreen">
   <div class="lock-card">
-    <div class="lock-mark">FD</div>
-    <h2>Footy Day Canteen</h2>
+    <div class="lock-mark">CA</div>
+    <h2>Canteen Assistant</h2>
     <p>Enter the canteen password to open this session.</p>
     <input class="field-input" id="lockPassword" type="password" placeholder="Password" autocomplete="off" />
     <div class="lock-actions">
@@ -399,8 +399,8 @@
 <div class="shell">
   <div class="topbar">
     <div class="brand">
-      <div class="mark">FD</div>
-      <h1>Footy Day Canteen</h1>
+      <div class="mark">CA</div>
+      <h1>Canteen Assistant</h1>
     </div>
     <div class="topbar-actions">
       <button type="button" class="btn ghost" id="daySettingsBtn">
@@ -926,7 +926,7 @@
     if(b.scope) metaParts.push(b.scope);
     if(dateStr) metaParts.push(dateStr);
     var html = '<div class="print-block' + (b.brk ? ' page-break' : '') + '">';
-    html += '<div class="print-banner"><div class="print-eyebrow">Footy Day Canteen</div>' +
+    html += '<div class="print-banner"><div class="print-eyebrow">Canteen Assistant</div>' +
       '<div class="print-banner-row"><div class="print-banner-title">' + esc(sessionTitle()) + ' \u2014 ' + esc(title) + '</div>' +
       (metaParts.length ? '<div class="print-banner-meta">' + esc(metaParts.join(' \u00b7 ')) + '</div>' : '') +
       '</div></div>';
@@ -967,7 +967,7 @@
     var metaParts = [];
     if(dateStr) metaParts.push(dateStr);
     var html = '<div class="print-block' + (b.brk ? ' page-break' : '') + '">';
-    html += '<div class="print-banner"><div class="print-eyebrow">Footy Day Canteen</div>' +
+    html += '<div class="print-banner"><div class="print-eyebrow">Canteen Assistant</div>' +
       '<div class="print-banner-row"><div class="print-banner-title">' + esc(sessionTitle()) + ' \u2014 ' + esc(title) + '</div>' +
       (metaParts.length ? '<div class="print-banner-meta">' + esc(metaParts.join(' \u00b7 ')) + '</div>' : '') +
       '</div></div>';
