@@ -1272,7 +1272,22 @@
       margin: 0,
       filename: filename,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
+      html2canvas: {
+        scale: 2, useCORS: true,
+        onclone: function(clonedDoc){
+          // The on-screen modal body is height-capped with its own scrollbar
+          // (max-height:70vh; overflow-y:auto) so only what's currently visible
+          // is on screen. Left as-is, html2canvas only captures that clipped
+          // slice. Lift the cap on the clone (used only for the PDF render,
+          // never touches the live page) so the full report is captured.
+          var body = clonedDoc.getElementById('reportModalBody');
+          if(body){ body.style.maxHeight = 'none'; body.style.overflow = 'visible'; body.style.height = 'auto'; }
+          var card = body ? body.closest('.modal-card') : null;
+          if(card){ card.style.maxHeight = 'none'; card.style.overflow = 'visible'; card.style.height = 'auto'; }
+          var backdrop = clonedDoc.getElementById('reportModal');
+          if(backdrop){ backdrop.style.position = 'static'; backdrop.style.overflow = 'visible'; backdrop.style.height = 'auto'; }
+        }
+      },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak: { mode: ['css', 'legacy'] }
     };
