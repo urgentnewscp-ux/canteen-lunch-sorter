@@ -355,7 +355,44 @@
     .topbar{flex-wrap:wrap;}
     .tile-row{width:100%;}
   }
+
+  /* ---------- lock screen ---------- */
+  #lockScreen{
+    position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center;
+    background:var(--paper-sunk); padding:20px;
+  }
+  #lockScreen .lock-card{
+    width:100%; max-width:340px; background:var(--paper); border:1.5px solid var(--line-strong);
+    border-radius:14px; box-shadow:var(--shadow); padding:28px 24px; text-align:center;
+  }
+  #lockScreen .lock-mark{
+    width:44px; height:44px; border-radius:11px; background:var(--ink); color:var(--paper);
+    display:flex; align-items:center; justify-content:center; font-weight:800; font-family:'Inter',sans-serif;
+    font-size:15px; margin:0 auto 14px;
+  }
+  #lockScreen h2{font-size:17px; margin-bottom:4px;}
+  #lockScreen p{font-size:12.5px; color:var(--ink-soft); margin-bottom:16px;}
+  #lockScreen input{
+    width:100%; box-sizing:border-box; text-align:center; letter-spacing:.08em; font-size:15px;
+  }
+  #lockScreen .lock-actions{margin-top:10px;}
+  #lockScreen .lock-actions .btn{width:100%; justify-content:center;}
+  #lockScreen .lock-error{color:var(--red); font-size:12px; margin-top:10px; min-height:14px;}
+  body.locked .shell{display:none;}
 </style>
+
+<div id="lockScreen">
+  <div class="lock-card">
+    <div class="lock-mark">FD</div>
+    <h2>Footy Day Canteen</h2>
+    <p>Enter the canteen password to open this session.</p>
+    <input class="field-input" id="lockPassword" type="password" placeholder="Password" autocomplete="off" />
+    <div class="lock-actions">
+      <button type="button" class="btn" id="lockUnlockBtn">Unlock</button>
+    </div>
+    <div class="lock-error" id="lockError"></div>
+  </div>
+</div>
 
 <div class="shell">
   <div class="topbar">
@@ -522,8 +559,22 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
+
+  // ---- shared password lock + cloud sync (so any device can open the same session) ----
+  var APP_PASSWORD = "bfg";
+  var UNLOCK_KEY = "footyDayUnlocked";
+  var SUPABASE_URL = "https://qnkuaybuunbsksomaeqr.supabase.co";
+  var SUPABASE_KEY = "sb_publishable_YzkberQUYkJQV7Zg7-rTTw_WzJ-WNvZ";
+  var CLOUD_ROW_ID = "footy-day-shared";
+  var supabaseClient = null;
+  try{
+    if(window.supabase && window.supabase.createClient){
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    }
+  }catch(e){}
 
   var CLASS_ORDER = ["FA","FB","FC","FD","1A","1B","1C","1D","2A","2B","2C","2D","3A","3B","3C","3D","4A","4B","4C","4D","5A","5B","5C","5D","6A","6B","6C","6D"];
   var KINDER_ORDER = ["Banksia","Eucalyptus","Lily Pilly","Waratah"];
@@ -930,6 +981,34 @@
       flavours: flavours, emptyMsg: flavours.length ? null : 'No juice ordered', brk:brk};
   }
 
+  function hotdogSheetBlockYear(y, info, brk){
+    var flavours = [];
+    if(info.hotdogsRegular) flavours.push({name:'Regular', count:info.hotdogsRegular, color:'var(--ink-faint)'});
+    if(info.hotdogsVeg) flavours.push({name:'Vegetarian', count:info.hotdogsVeg, color:'var(--green)'});
+    var wj = juiceTotal(info);
+    var subParts = [];
+    if(wj) subParts.push(wj + ' with juice');
+    if(info.plain) subParts.push(info.plain + ' plain (no juice)');
+    var sub = subParts.length ? subParts.join(' \u00b7 ') : null;
+    return {kind:'sheet', className:y, classMeta: info.orders + ' orders',
+      heroValue: info.hotdogs, heroLabel:'HOT DOGS TO PACK', heroAccent:'red',
+      flavours: flavours, sub: sub, emptyMsg: flavours.length ? null : 'No hot dogs ordered', brk:brk};
+  }
+
+  function juiceSheetBlockYear(y, info, brk){
+    var total = juiceTotal(info);
+    var colors = {apple:'var(--gold)', ab:'var(--blue)', trop:'var(--green)'};
+    var flavours = [];
+    ["apple","ab","trop"].forEach(function(fk){
+      var n = info.combos[fk];
+      if(n) flavours.push({name:FLAVOUR_LABEL[fk], count:n, color:colors[fk]});
+    });
+    flavours.sort(function(a,b){ return b.count-a.count; });
+    return {kind:'sheet', className:y, classMeta: info.orders + ' orders',
+      heroValue: total, heroLabel:'JUICE BOXES TO PACK', heroAccent:'green',
+      flavours: flavours, emptyMsg: flavours.length ? null : 'No juice ordered', brk:brk};
+  }
+
   function printReport(title, blocks){
     var html = blocks.map(function(b){ return b.kind === 'sheet' ? renderSheetBlock(title, b) : renderBlock(title, b); }).join('');
     document.getElementById('reportModalTitle').textContent = title;
@@ -1274,6 +1353,20 @@
     printReport('Juice packing sheet', blocks);
   };
 
+  actions.hotdogPackingByYear = function(){
+    var d = currentData;
+    var list = yearListOrdered(d);
+    var blocks = list.map(function(y, i){ return hotdogSheetBlockYear(y, d.byYear[y], i < list.length-1); });
+    printReport('Hot dog packing sheet \u2014 by year', blocks);
+  };
+
+  actions.juicePackingByYear = function(){
+    var d = currentData;
+    var list = yearListOrdered(d);
+    var blocks = list.map(function(y, i){ return juiceSheetBlockYear(y, d.byYear[y], i < list.length-1); });
+    printReport('Juice packing sheet \u2014 by year', blocks);
+  };
+
   actions.juicePerClass = function(){
     var d = currentData;
     var list = classListOrdered(d);
@@ -1389,6 +1482,8 @@
   var RECOMMENDED = [
     ["Hot dog packing sheet \u2014 big print, one page per class", "hotdogPackingByClass"],
     ["Juice packing sheet \u2014 big print, one page per class", "juicePackingByClass"],
+    ["Hot dog packing sheet \u2014 big print, one page per year level", "hotdogPackingByYear"],
+    ["Juice packing sheet \u2014 big print, one page per year level", "juicePackingByYear"],
     ["Class flavour summary PDF", "classFlavourSummary"],
     ["Class flavour summary \u2014 one page per class", "classFlavourSummaryPerClass"],
     ["Ordering sheet PDF", "orderingSheet"]
@@ -1480,7 +1575,7 @@
     dateInput.value = iso;
   }
 
-  // ---- session details: saved on this device only (no online/cloud storage) ----
+  // ---- session details ----
   var SESSION_STORE_KEY = "footySessionMeta";
   (function loadSessionMeta(){
     try{
@@ -1494,18 +1589,106 @@
     }catch(e){}
   })();
 
+  function sessionMetaValues(){
+    return {
+      name: document.getElementById('sessionName').value,
+      lunchItem: document.getElementById('lunchItem').value,
+      date: document.getElementById('sessionDate').value
+    };
+  }
+
+  // ---- cloud sync: shared session behind the password, visible on any device ----
+  function cloudAvailable(){ return !!supabaseClient; }
+
+  function saveToCloud(){
+    if(!cloudAvailable()) return Promise.resolve(false);
+    var payload = {
+      meta: sessionMetaValues(),
+      rows: lastRows || DEFAULT_DATA,
+      label: lastLabel || DEFAULT_LABEL,
+      dayDays: dayDays,
+      dayAssignment: dayAssignment
+    };
+    return supabaseClient.from('canteen_footy_sessions')
+      .upsert({ id: CLOUD_ROW_ID, data: payload, updated_at: new Date().toISOString() })
+      .then(function(res){ return !res.error; })
+      .catch(function(){ return false; });
+  }
+
+  function applyCloudPayload(payload){
+    if(!payload) return;
+    if(payload.meta){
+      if(payload.meta.name) document.getElementById('sessionName').value = payload.meta.name;
+      if(payload.meta.lunchItem) document.getElementById('lunchItem').value = payload.meta.lunchItem;
+      if(payload.meta.date) document.getElementById('sessionDate').value = payload.meta.date;
+    }
+    if(payload.dayDays && payload.dayDays.length){
+      dayDays = payload.dayDays;
+      dayAssignment = payload.dayAssignment || dayAssignment;
+      saveDaySettings();
+    }
+    if(payload.rows && payload.rows.length){
+      render(payload.rows, payload.label || DEFAULT_LABEL);
+    }
+  }
+
+  function loadFromCloud(silent){
+    if(!cloudAvailable()) return;
+    supabaseClient.from('canteen_footy_sessions').select('data').eq('id', CLOUD_ROW_ID).maybeSingle()
+      .then(function(res){
+        if(res.error || !res.data || !res.data.data) return;
+        applyCloudPayload(res.data.data);
+        if(!silent) showToast('Loaded the shared session from the cloud');
+      })
+      .catch(function(){});
+  }
+
   document.getElementById('saveSessionBtn').addEventListener('click', function(){
     try{
-      localStorage.setItem(SESSION_STORE_KEY, JSON.stringify({
-        name: document.getElementById('sessionName').value,
-        lunchItem: document.getElementById('lunchItem').value,
-        date: document.getElementById('sessionDate').value
-      }));
-      showToast('Saved on this device \u2014 it will load next time you open this page here');
-    }catch(e){
-      showToast("Couldn't save \u2014 this browser may be blocking site storage");
+      localStorage.setItem(SESSION_STORE_KEY, JSON.stringify(sessionMetaValues()));
+    }catch(e){}
+    if(cloudAvailable()){
+      showToast('Saving to the cloud\u2026');
+      saveToCloud().then(function(ok){
+        showToast(ok ? 'Saved \u2014 open this app anywhere with the password to see it' : "Saved on this device, but the cloud save failed \u2014 check your connection and try again");
+      });
+    } else {
+      showToast('Saved on this device \u2014 cloud sync is unavailable right now');
     }
   });
+
+  // ---- password lock ----
+  function unlockApp(){
+    try{ document.body.classList.remove('locked'); }catch(e){}
+    var lock = document.getElementById('lockScreen');
+    if(lock) lock.style.display = 'none';
+    loadFromCloud(true);
+  }
+  function attemptUnlock(){
+    var val = document.getElementById('lockPassword').value || '';
+    if(val.trim().toLowerCase() === APP_PASSWORD){
+      try{ localStorage.setItem(UNLOCK_KEY, '1'); }catch(e){}
+      var err = document.getElementById('lockError');
+      if(err) err.textContent = '';
+      unlockApp();
+    } else {
+      var err2 = document.getElementById('lockError');
+      if(err2) err2.textContent = 'Incorrect password \u2014 try again.';
+    }
+  }
+  document.getElementById('lockUnlockBtn').addEventListener('click', attemptUnlock);
+  document.getElementById('lockPassword').addEventListener('keydown', function(e){
+    if(e.key === 'Enter') attemptUnlock();
+  });
+  (function initLock(){
+    var isUnlocked = false;
+    try{ isUnlocked = localStorage.getItem(UNLOCK_KEY) === '1'; }catch(e){}
+    if(isUnlocked){
+      unlockApp();
+    } else {
+      try{ document.body.classList.add('locked'); }catch(e){}
+    }
+  })();
 
   render(DEFAULT_DATA, DEFAULT_LABEL);
 })();
