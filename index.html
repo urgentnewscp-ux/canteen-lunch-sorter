@@ -275,6 +275,37 @@
     background:var(--paper-sunk); color:var(--ink-soft); font-size:12.5px; padding:10px 22px; border-bottom:1px solid var(--line);
   }
   .modal-body{padding:22px; max-height:70vh; overflow-y:auto; background:var(--paper-sunk);}
+  .modal-card.wide{max-width:1060px;}
+
+  /* ---------- charts ---------- */
+  .chart-empty{padding:48px 20px; text-align:center; color:var(--ink-soft); font-size:13.5px;}
+  .chart-grid{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+  @media (max-width:720px){ .chart-grid{grid-template-columns:1fr;} }
+  .chart-card{background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:18px; box-shadow:var(--shadow);}
+  .chart-card.wide-span{grid-column:1 / -1;}
+  .chart-card h3{font-size:13.5px; font-weight:700; font-family:'Inter',sans-serif; margin-bottom:14px;}
+  .donut-wrap{display:flex; align-items:center; gap:20px; flex-wrap:wrap;}
+  .donut{width:140px; height:140px; border-radius:50%; flex:none; position:relative;}
+  .donut-center{
+    position:absolute; inset:22px; border-radius:50%; background:var(--paper);
+    display:flex; align-items:center; justify-content:center; flex-direction:column; text-align:center;
+  }
+  .donut-center .dv{font-size:19px; font-weight:700; font-family:'IBM Plex Mono',monospace;}
+  .donut-center .dl{font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin-top:2px;}
+  .donut-legend{display:flex; flex-direction:column; gap:8px; flex:1; min-width:140px;}
+  .donut-legend-row{display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:12.5px; font-weight:600;}
+  .donut-legend-name{display:flex; align-items:center; gap:8px; min-width:0;}
+  .donut-legend-name span.txt{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .donut-legend-dot{width:10px; height:10px; border-radius:3px; flex:none;}
+  .donut-legend-count{font-family:'IBM Plex Mono',monospace; color:var(--ink-soft); flex:none;}
+  .bar-chart{display:flex; flex-direction:column; gap:10px;}
+  .bar-row{display:grid; grid-template-columns:110px 1fr 42px; align-items:center; gap:10px;}
+  .bar-row .bl{font-size:12px; font-weight:600; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .bar-track{background:var(--paper-sunk); border-radius:6px; height:16px; overflow:hidden;}
+  .bar-fill{height:100%; border-radius:6px;}
+  .bar-row .bv{font-size:12px; font-weight:700; text-align:right; font-family:'IBM Plex Mono',monospace;}
+  .stacked-legend{display:flex; gap:16px; margin-top:12px; font-size:12px; font-weight:600; color:var(--ink-soft); align-items:center; flex-wrap:wrap;}
+  .stacked-legend .dot{width:10px; height:10px; border-radius:3px; display:inline-block; margin-right:6px; vertical-align:middle;}
 
   /* ---------- report pages (banner + stats + table) ---------- */
   .print-block{
@@ -413,6 +444,10 @@
       <button type="button" class="btn ghost" id="daySettingsBtn">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v3M16 2v3M3.5 8h17M4 4.5h16a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5.5a1 1 0 0 1 1-1Z"/></svg>
         Lunch days
+      </button>
+      <button type="button" class="btn ghost" id="openChartsBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5M4 19h16M8 19v-6M13 19V9M18 19v-9"/></svg>
+        Charts
       </button>
       <button type="button" class="btn ghost" id="openUploadBtn">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
@@ -569,6 +604,47 @@
           <input type="file" accept=".csv,text/csv" id="csvInput" style="display:none" />
         </label>
         <button class="btn ghost" id="copyCsvBtn">Copy raw data as CSV</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="chartsModal" hidden>
+  <div class="modal-card wide">
+    <div class="modal-head">
+      <h2>Charts</h2>
+      <div class="modal-actions">
+        <button class="modal-close" id="chartsModalCloseBtn" aria-label="Close">&times;</button>
+      </div>
+    </div>
+    <div class="modal-hint">Visual breakdowns of the loaded session &mdash; handy for spotting patterns at a glance.</div>
+    <div class="modal-body">
+      <div class="chart-empty" id="chartsEmpty" hidden>Import a CSV first to see charts here.</div>
+      <div class="chart-grid" id="chartsGrid">
+        <div class="chart-card">
+          <h3>Hot dog type</h3>
+          <div id="chartHotdogType"></div>
+        </div>
+        <div class="chart-card">
+          <h3>Juice flavour</h3>
+          <div id="chartJuiceFlavour"></div>
+        </div>
+        <div class="chart-card">
+          <h3>Orders by year level</h3>
+          <div id="chartOrdersByYear"></div>
+        </div>
+        <div class="chart-card">
+          <h3>Orders by day</h3>
+          <div id="chartOrdersByDay"></div>
+        </div>
+        <div class="chart-card">
+          <h3>Hot dogs by year level &mdash; regular vs vegetarian</h3>
+          <div id="chartHotdogsByYearStacked"></div>
+        </div>
+        <div class="chart-card wide-span">
+          <h3>Top 10 classes by orders</h3>
+          <div id="chartTopClasses"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -807,6 +883,102 @@
   function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]; }); }
 
   var currentData = null;
+
+  // ---------------- chart builders (hand-rolled, no external chart library) ----------------
+  function chartEmptyHtml(){ return '<div class="chart-empty" style="padding:20px;">No data yet</div>'; }
+
+  function donutChart(segments, centerLabel){
+    var total = segments.reduce(function(s,x){ return s + x.value; }, 0);
+    if(total <= 0) return chartEmptyHtml();
+    var cum = 0;
+    var stops = segments.filter(function(s){ return s.value > 0; }).map(function(s){
+      var start = cum / total * 360; cum += s.value; var end = cum / total * 360;
+      return s.color + ' ' + start.toFixed(2) + 'deg ' + end.toFixed(2) + 'deg';
+    }).join(', ');
+    var legend = segments.map(function(s){
+      var pct = Math.round(s.value / total * 100);
+      return '<div class="donut-legend-row"><div class="donut-legend-name"><span class="donut-legend-dot" style="background:' + s.color + '"></span><span class="txt">' + esc(s.label) + '</span></div><div class="donut-legend-count">' + s.value + ' (' + pct + '%)</div></div>';
+    }).join('');
+    return '<div class="donut-wrap">' +
+      '<div class="donut" style="background:conic-gradient(' + stops + ')">' +
+        '<div class="donut-center"><div class="dv mono">' + total + '</div><div class="dl">' + esc(centerLabel || 'TOTAL') + '</div></div>' +
+      '</div>' +
+      '<div class="donut-legend">' + legend + '</div>' +
+    '</div>';
+  }
+
+  function barChart(items){
+    items = items.filter(function(i){ return i.value > 0; });
+    if(!items.length) return chartEmptyHtml();
+    var max = Math.max.apply(null, items.map(function(i){ return i.value; }));
+    return '<div class="bar-chart">' + items.map(function(i){
+      var pct = max ? Math.round(i.value / max * 100) : 0;
+      return '<div class="bar-row"><div class="bl" title="' + esc(i.label) + '">' + esc(i.label) + '</div>' +
+        '<div class="bar-track"><div class="bar-fill" style="width:' + pct + '%; background:' + i.color + ';"></div></div>' +
+        '<div class="bv mono">' + i.value + '</div></div>';
+    }).join('') + '</div>';
+  }
+
+  function stackedBarChart(rows, legendHtml){
+    rows = rows.filter(function(r){ return r.segments.reduce(function(s,x){ return s + x.value; }, 0) > 0; });
+    if(!rows.length) return chartEmptyHtml();
+    var totals = rows.map(function(r){ return r.segments.reduce(function(s,x){ return s + x.value; }, 0); });
+    var max = Math.max.apply(null, totals);
+    var body = rows.map(function(r, i){
+      var total = totals[i];
+      var totalPct = max ? Math.min(100, total / max * 100) : 0;
+      var inner = r.segments.filter(function(s){ return s.value > 0; }).map(function(s){
+        return '<div style="flex:' + s.value + ' 0 0; background:' + s.color + ';"></div>';
+      }).join('');
+      return '<div class="bar-row"><div class="bl" title="' + esc(r.label) + '">' + esc(r.label) + '</div>' +
+        '<div class="bar-track"><div style="display:flex; height:100%; width:' + totalPct + '%;">' + inner + '</div></div>' +
+        '<div class="bv mono">' + total + '</div></div>';
+    }).join('');
+    return '<div class="bar-chart">' + body + '</div>' + (legendHtml ? '<div class="stacked-legend">' + legendHtml + '</div>' : '');
+  }
+
+  function renderCharts(){
+    var d = currentData;
+    var grid = document.getElementById('chartsGrid');
+    var empty = document.getElementById('chartsEmpty');
+    if(!d || !d.totalOrders){
+      grid.hidden = true; empty.hidden = false; return;
+    }
+    grid.hidden = false; empty.hidden = true;
+
+    document.getElementById('chartHotdogType').innerHTML = donutChart([
+      {label:'Regular', value:d.totalHotdogsRegular, color:'var(--blue)'},
+      {label:'Vegetarian', value:d.totalHotdogsVeg, color:'var(--green)'}
+    ], 'HOT DOGS');
+
+    var juiceColors = {apple:'var(--gold)', ab:'var(--blue)', trop:'var(--green)'};
+    var juiceSegs = ["apple","ab","trop"].map(function(fk){ return {label:FLAVOUR_LABEL[fk], value:d.flavourTotals[fk]||0, color:juiceColors[fk]}; });
+    document.getElementById('chartJuiceFlavour').innerHTML = donutChart(juiceSegs, 'JUICE');
+
+    var yearItems = YEAR_ORDER.filter(function(y){ return d.byYear[y]; })
+      .map(function(y){ return {label:y, value:d.byYear[y].orders, color:'var(--blue)'}; });
+    document.getElementById('chartOrdersByYear').innerHTML = barChart(yearItems);
+
+    var dayItems = dayDays.map(function(day){ return {label:day, value:(d.byDay[day]?d.byDay[day].orders:0), color:'var(--red)'}; });
+    document.getElementById('chartOrdersByDay').innerHTML = barChart(dayItems);
+
+    var yearHotdogRows = YEAR_ORDER.filter(function(y){ return d.byYear[y]; }).map(function(y){
+      var yi = d.byYear[y];
+      return {label:y, segments:[
+        {value:yi.hotdogsRegular, color:'var(--blue)'},
+        {value:yi.hotdogsVeg, color:'var(--green)'}
+      ]};
+    });
+    var stackedLegend = '<span><span class="dot" style="background:var(--blue)"></span>Regular</span>' +
+      '<span><span class="dot" style="background:var(--green)"></span>Vegetarian</span>';
+    document.getElementById('chartHotdogsByYearStacked').innerHTML = stackedBarChart(yearHotdogRows, stackedLegend);
+
+    var classItems = Object.keys(d.byClass).filter(function(c){ return d.byClass[c].orders > 0; })
+      .sort(function(a,b){ return d.byClass[b].orders - d.byClass[a].orders; })
+      .slice(0, 10)
+      .map(function(c){ return {label:c, value:d.byClass[c].orders, color:'var(--gold)'}; });
+    document.getElementById('chartTopClasses').innerHTML = barChart(classItems);
+  }
 
   // ---------------- rendering the dashboard ----------------
   function tileHtml(label, value, cls){
@@ -1200,6 +1372,25 @@
   });
   document.addEventListener('keydown', function(e){
     if(e.key === 'Escape' && !document.getElementById('uploadModal').hidden) closeUploadModal();
+  });
+
+  // ---------------- charts modal ----------------
+  function openChartsModal(){
+    renderCharts();
+    document.getElementById('chartsModal').hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+  function closeChartsModal(){
+    document.getElementById('chartsModal').hidden = true;
+    document.body.style.overflow = '';
+  }
+  document.getElementById('openChartsBtn').addEventListener('click', openChartsModal);
+  document.getElementById('chartsModalCloseBtn').addEventListener('click', closeChartsModal);
+  document.getElementById('chartsModal').addEventListener('click', function(e){
+    if(e.target === e.currentTarget) closeChartsModal();
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && !document.getElementById('chartsModal').hidden) closeChartsModal();
   });
 
   document.getElementById('dayModalBody').addEventListener('click', function(e){
