@@ -824,7 +824,7 @@
 
     var noteEl = document.getElementById('parseNote');
     if(d.unmatched.length === 0){
-      noteEl.innerHTML = '<div class="check"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>All ' + d.totalOrders + ' bookings parsed &mdash; no unrecognised rows.</div>';
+      noteEl.innerHTML = '';
     } else {
       noteEl.innerHTML = '<div class="flag">' + d.unmatched.length + ' row(s) could not be read and were skipped &mdash; check the booking text for: ' +
         d.unmatched.slice(0,5).map(function(r){ return esc(r[0]); }).join(', ') + '</div>';
