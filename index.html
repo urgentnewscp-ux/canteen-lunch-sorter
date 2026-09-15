@@ -298,6 +298,7 @@
   table.rtable.accent-green thead th{background:var(--green);}
   table.rtable.accent-red thead th{background:var(--red);}
   table.rtable.accent-navy thead th{background:#12141f;}
+  table.rtable tr.year-break td{border-top:3px solid var(--ink);}
   .table-scroll-print{overflow-x:auto;}
 
   /* ---------- packing sheets (big-print, for the people packing food) ---------- */
@@ -349,6 +350,7 @@
     table.rtable th{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
     table.rtable tfoot td{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
     table.rtable td{border-bottom:1px solid #ddd !important;}
+    table.rtable tr.year-break td{border-top:3px solid #111 !important;}
   }
 
   @media (max-width:520px){
@@ -910,7 +912,7 @@
         b.tableHead.map(function(h,i){ return '<th style="text-align:' + align[i] + '">' + esc(h) + '</th>'; }).join('') +
         '</tr></thead><tbody>';
       b.tableRows.forEach(function(r){
-        html += '<tr>' + r.map(function(c,i){
+        html += '<tr' + (r.yearBreak ? ' class="year-break"' : '') + '>' + r.map(function(c,i){
           var cls = align[i] === 'left' ? ' class="txt"' : '';
           var val = String(c).split('\n').map(esc).join('<br>');
           return '<td' + cls + '>' + val + '</td>';
@@ -1245,7 +1247,14 @@
 
   actions.classFlavourSummary = function(){
     var d = currentData;
-    var rows = classListOrdered(d).map(function(c){ return flavourSummaryRow(c, d.byClass[c]); });
+    var lastYear = null;
+    var rows = classListOrdered(d).map(function(c){
+      var row = flavourSummaryRow(c, d.byClass[c]);
+      var yr = yearLabel(c);
+      if(lastYear !== null && yr !== lastYear) row.yearBreak = true;
+      lastYear = yr;
+      return row;
+    });
     printReport('Class flavour summary', [{scope:'All classes', accent:'navy',
       tableHead:SUMMARY_HEAD, colAlign:SUMMARY_ALIGN, tableRows:rows}]);
   };
