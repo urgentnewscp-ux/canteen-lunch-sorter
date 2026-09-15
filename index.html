@@ -1294,11 +1294,23 @@
       backdrop.style.cssText = prevBackdropStyle;
     }
 
+    // html2canvas otherwise sizes its render window from the browser's own
+    // viewport, not from how tall the (now unclamped) content actually is,
+    // which is what was truncating the capture to a single screen's worth.
+    // Measuring the real, now-unclamped size and passing it through directly
+    // sidesteps that auto-detection entirely.
+    var fullWidth = Math.ceil(el.scrollWidth);
+    var fullHeight = Math.ceil(el.scrollHeight);
+
     var opt = {
       margin: 0,
       filename: filename,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
+      html2canvas: {
+        scale: 2, useCORS: true,
+        width: fullWidth, height: fullHeight,
+        windowWidth: fullWidth, windowHeight: fullHeight
+      },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak: { mode: ['css', 'legacy'] }
     };
